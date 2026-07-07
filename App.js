@@ -204,8 +204,31 @@ export default function App() {
     month: "mês",
     all: "sempre"
   }[period];
-  const todayMeals = state.meals.filter((meal) => meal.date === todayISO());
-  const todayExpenses = state.expenses.filter((expense) => expense.date === todayISO());
+  const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
+  const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
+  const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
+  const consumptionByCategory = Object.values(
+    periodMeals.reduce((acc, meal) => {
+      const food = state.foods.find((item) => item.id === meal.foodId);
+      const category = food?.category || "Outros";
+
+      acc[category] = acc[category] || {
+        category,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        grams: 0
+      };
+      acc[category].calories = round(acc[category].calories + meal.calories);
+      acc[category].protein = round(acc[category].protein + meal.protein);
+      acc[category].carbs = round(acc[category].carbs + meal.carbs);
+      acc[category].fat = round(acc[category].fat + meal.fat);
+      acc[category].grams = round(acc[category].grams + meal.grams);
+
+      return acc;
+    }, {})
+  );
 
   function addMeal() {
     const food = state.foods.find((item) => item.id === mealForm.foodId);
@@ -302,19 +325,19 @@ export default function App() {
                 <Metric title="Carboidratos" value={`${totals.carbs} g`} />
               </View>
 
-              <Section title="Consumo de hoje">
-                {todayMeals.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum consumo registrado hoje.</Text>
+              <Section title={`Consumo de ${periodLabel}`}>
+                {consumptionByCategory.length === 0 ? (
+                  <Text style={styles.muted}>Nenhum consumo registrado neste período.</Text>
                 ) : (
-                  todayMeals.map((meal) => <MealItem key={meal.id} meal={meal} />)
+                  consumptionByCategory.map((item) => <ConsumptionCategoryItem key={item.category} item={item} />)
                 )}
               </Section>
 
-              <Section title="Gastos de hoje">
-                {todayExpenses.length === 0 ? (
-                  <Text style={styles.muted}>Nenhuma atividade registrada hoje.</Text>
+              <Section title={`Gastos de ${periodLabel}`}>
+                {periodExpenses.length === 0 ? (
+                  <Text style={styles.muted}>Nenhuma atividade registrada neste período.</Text>
                 ) : (
-                  todayExpenses.map((expense) => <ActivityItem key={expense.id} activity={expense} />)
+                  periodExpenses.map((expense) => <ActivityItem key={expense.id} activity={expense} />)
                 )}
               </Section>
             </>
@@ -479,6 +502,22 @@ function MealItem({ meal }) {
         </Text>
       </View>
       <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+    </View>
+  );
+}
+
+function ConsumptionCategoryItem({ item }) {
+  return (
+    <View style={styles.mealItem}>
+      <View style={styles.mealText}>
+        <Text style={styles.mealTitle}>{item.category}</Text>
+        <Text style={styles.muted}>{item.grams}g/ml consumidos</Text>
+      </View>
+      <View style={styles.macroSummary}>
+        <Text style={styles.macroSummaryText}>{item.calories} kcal</Text>
+        <Text style={styles.macroSummaryText}>{item.protein}g pro</Text>
+        <Text style={styles.macroSummaryText}>{item.carbs}g carb</Text>
+      </View>
     </View>
   );
 }
@@ -760,12 +799,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12
   },
+  mealText: {
+    flex: 1
+  },
   mealTitle: {
     color: "#243119",
     fontWeight: "800"
   },
   mealCalories: {
     color: "#466B2D",
+    fontWeight: "900"
+  },
+  macroSummary: {
+    alignItems: "flex-end",
+    gap: 2
+  },
+  macroSummaryText: {
+    color: "#466B2D",
+    fontSize: 12,
     fontWeight: "900"
   },
   chart: {
