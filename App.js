@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+﻿import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -14,9 +14,9 @@ import {
   View
 } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
-import { activities as activityPresets } from "./src/data/activities";
-import { foods as starterFoods } from "./src/data/foods";
-import { calculateNutrition, getPeriodStart, round, todayISO } from "./src/utils/nutrition";
+import { activities as activityPresets } from "./activities";
+import { foods as starterFoods } from "./foods";
+import { calculateNutrition, getPeriodStart, round, todayISO } from "./nutrition";
 
 const STORAGE_KEY = "@dieta-controlada:v1";
 
@@ -56,7 +56,7 @@ const legacyStarterFoods = [
   {
     id: "frango",
     name: "Peito de frango grelhado",
-    category: "Proteína",
+    category: "ProteÃ­na",
     caloriesPer100g: 165,
     proteinPer100g: 31,
     carbsPer100g: 0,
@@ -64,7 +64,7 @@ const legacyStarterFoods = [
   },
   {
     id: "feijao",
-    name: "Feijão cozido",
+    name: "FeijÃ£o cozido",
     category: "Carboidrato",
     caloriesPer100g: 76,
     proteinPer100g: 4.8,
@@ -96,7 +96,7 @@ const legacyActivityPresets = [
   },
   {
     id: "trabalho-em-pe",
-    name: "Trabalho em pé",
+    name: "Trabalho em pÃ©",
     caloriesPerHour: 140
   }
 ];
@@ -204,12 +204,12 @@ export default function App() {
 
   const balance = round(totals.calories - totals.spent);
   const balanceStatus =
-    balance > 0 ? "Superávit calórico" : balance < 0 ? "Déficit calórico" : "Manutenção calórica";
+    balance > 0 ? "SuperÃ¡vit calÃ³rico" : balance < 0 ? "DÃ©ficit calÃ³rico" : "ManutenÃ§Ã£o calÃ³rica";
   const periodLabel = {
     day: "hoje",
     week: "semana",
-    last7: "últimos 7 dias",
-    month: "mês",
+    last7: "Ãºltimos 7 dias",
+    month: "mÃªs",
     all: "sempre"
   }[period];
   const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
@@ -370,8 +370,8 @@ export default function App() {
                 <View style={styles.heroPeriods}>
                   <PeriodButton label="Hoje" active={period === "day"} onPress={() => setPeriod("day")} />
                   <PeriodButton label="Semana" active={period === "week"} onPress={() => setPeriod("week")} />
-                  <PeriodButton label="Últ. 7 dias" active={period === "last7"} onPress={() => setPeriod("last7")} />
-                  <PeriodButton label="Mês" active={period === "month"} onPress={() => setPeriod("month")} />
+                  <PeriodButton label="Ãšlt. 7 dias" active={period === "last7"} onPress={() => setPeriod("last7")} />
+                  <PeriodButton label="MÃªs" active={period === "month"} onPress={() => setPeriod("month")} />
                   <PeriodButton label="Sempre" active={period === "all"} onPress={() => setPeriod("all")} />
                 </View>
                 <Text style={[styles.balance, balance > 0 ? styles.balancePositive : styles.balanceNegative]}>
@@ -380,9 +380,9 @@ export default function App() {
                 <Text style={styles.muted}>{balanceStatus}</Text>
               </View>
 
-              <Section title="Evolução do saldo acumulado">
+              <Section title="EvoluÃ§Ã£o do saldo acumulado">
                 {balanceSeries.length === 0 ? (
-                  <Text style={styles.muted}>Registre consumo e gasto para gerar o gráfico.</Text>
+                  <Text style={styles.muted}>Registre consumo e gasto para gerar o grÃ¡fico.</Text>
                 ) : (
                   <>
                     <BalanceEvolutionChart data={balanceSeries} />
@@ -396,13 +396,13 @@ export default function App() {
               <View style={styles.grid}>
                 <Metric title="Consumido" value={`${totals.calories} kcal`} />
                 <Metric title="Gasto" value={`${totals.spent} kcal`} />
-                <Metric title="Proteínas" value={`${totals.protein} g`} />
+                <Metric title="ProteÃ­nas" value={`${totals.protein} g`} />
                 <Metric title="Carboidratos" value={`${totals.carbs} g`} />
               </View>
 
               <Section title={`Consumo de ${periodLabel}`}>
                 {consumptionByFood.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum consumo registrado neste período.</Text>
+                  <Text style={styles.muted}>Nenhum consumo registrado neste perÃ­odo.</Text>
                 ) : (
                   consumptionByFood.map((item) => <ConsumptionFoodItem key={item.name} item={item} />)
                 )}
@@ -410,7 +410,7 @@ export default function App() {
 
               <Section title={`Gastos de ${periodLabel}`}>
                 {expensesByActivity.length === 0 ? (
-                  <Text style={styles.muted}>Nenhuma atividade registrada neste período.</Text>
+                  <Text style={styles.muted}>Nenhuma atividade registrada neste perÃ­odo.</Text>
                 ) : (
                   expensesByActivity.map((expense) => <ExpenseActivitySummary key={expense.name} expense={expense} />)
                 )}
@@ -474,9 +474,9 @@ export default function App() {
               />
               <Button label="Salvar consumo" onPress={addMeal} />
               <View style={styles.inlineLog}>
-                <Text style={styles.cardTitle}>Consumos lançados hoje</Text>
+                <Text style={styles.cardTitle}>Consumos lanÃ§ados hoje</Text>
                 {selectedDateMeals.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum consumo lançado nesta data.</Text>
+                  <Text style={styles.muted}>Nenhum consumo lanÃ§ado nesta data.</Text>
                 ) : (
                   selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} onDelete={() => deleteMeal(meal.id)} />)
                 )}
@@ -499,7 +499,7 @@ export default function App() {
                 onChangeText={(caloriesPer100g) => setFoodForm({ ...foodForm, caloriesPer100g })}
               />
               <Input
-                label="Proteína por 100g"
+                label="ProteÃ­na por 100g"
                 keyboardType="numeric"
                 value={foodForm.proteinPer100g}
                 onChangeText={(proteinPer100g) => setFoodForm({ ...foodForm, proteinPer100g })}
@@ -521,7 +521,7 @@ export default function App() {
           )}
 
           {activeTab === "expense" && (
-            <Section title="Registrar gasto diário">
+            <Section title="Registrar gasto diÃ¡rio">
               <Input label="Data" value={expenseForm.date} onChangeText={(date) => setExpenseForm({ ...expenseForm, date })} />
               <Text style={styles.label}>Atividade</Text>
               <View style={styles.foodList}>
@@ -562,13 +562,13 @@ export default function App() {
                 onChangeText={(time) => setExpenseForm({ ...expenseForm, time })}
               />
               <Text style={styles.muted}>
-                O app calcula as calorias usando uma média pré-programada por hora para cada atividade.
+                O app calcula as calorias usando uma mÃ©dia prÃ©-programada por hora para cada atividade.
               </Text>
               <Button label="Salvar atividade" onPress={addExpense} />
               <View style={styles.inlineLog}>
-                <Text style={styles.cardTitle}>Gastos lançados hoje</Text>
+                <Text style={styles.cardTitle}>Gastos lanÃ§ados hoje</Text>
                 {selectedDateExpenses.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum gasto lançado nesta data.</Text>
+                  <Text style={styles.muted}>Nenhum gasto lanÃ§ado nesta data.</Text>
                 ) : (
                   selectedDateExpenses.map((expense) => (
                     <ActivityItem key={expense.id} activity={expense} onDelete={() => deleteExpense(expense.id)} />
@@ -640,7 +640,7 @@ function MealItem({ meal, onDelete }) {
       <View>
         <Text style={styles.mealTitle}>{meal.foodName}</Text>
         <Text style={styles.muted}>
-          {meal.date} • {meal.grams}g/ml
+          {meal.date} â€¢ {meal.grams}g/ml
         </Text>
       </View>
       <View style={styles.itemActions}>
@@ -673,7 +673,7 @@ function ActivityItem({ activity, onDelete }) {
       <View>
         <Text style={styles.mealTitle}>{activity.description}</Text>
         <Text style={styles.muted}>
-          {activity.date} • {activity.minutes || 0} min
+          {activity.date} â€¢ {activity.minutes || 0} min
         </Text>
       </View>
       <View style={styles.itemActions}>
@@ -1088,3 +1088,4 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   }
 });
+

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -370,8 +370,8 @@
               <div class="period-filter">
                 <span class="period-button active" data-period="hoje">Hoje</span>
                 <span class="period-button" data-period="semana">Semana</span>
-                <span class="period-button" data-period="últimos 7 dias">Últ. 7 dias</span>
-                <span class="period-button" data-period="mês">Mês</span>
+                <span class="period-button" data-period="Ãºltimos 7 dias">Ãšlt. 7 dias</span>
+                <span class="period-button" data-period="mÃªs">MÃªs</span>
                 <span class="period-button" data-period="sempre">Sempre</span>
               </div>
               <div class="balance">0 kcal</div>
@@ -379,10 +379,10 @@
             </div>
 
             <div class="card" style="margin-top: 14px;">
-              <h2>Evolução do saldo acumulado</h2>
-              <div class="chart" id="balance-chart" aria-label="Gráfico de saldo diário e acumulado">
+              <h2>EvoluÃ§Ã£o do saldo acumulado</h2>
+              <div class="chart" id="balance-chart" aria-label="GrÃ¡fico de saldo diÃ¡rio e acumulado">
               </div>
-              <div class="muted">Colunas = saldo do dia. Linha = saldo acumulado. Semana começa na segunda.</div>
+              <div class="muted">Colunas = saldo do dia. Linha = saldo acumulado. Semana comeÃ§a na segunda.</div>
             </div>
 
             <div class="grid" style="margin-top: 14px;">
@@ -395,7 +395,7 @@
                 <div class="metric-value" id="metric-spent">0 kcal</div>
               </div>
               <div class="metric">
-                <div class="metric-label">Proteínas</div>
+                <div class="metric-label">ProteÃ­nas</div>
                 <div class="metric-value" id="metric-protein">0 g</div>
               </div>
               <div class="metric">
@@ -432,7 +432,7 @@
               <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
               <button class="button" id="save-consumption">Salvar consumo</button>
               <div>
-                <h2 style="font-size: 16px;">Consumos lançados hoje</h2>
+                <h2 style="font-size: 16px;">Consumos lanÃ§ados hoje</h2>
                 <div id="meal-log"></div>
               </div>
             </div>
@@ -454,7 +454,7 @@
               <div class="muted" id="expense-preview">Selecione uma atividade e informe o tempo.</div>
               <button class="button" id="save-expense">Salvar atividade</button>
               <div>
-                <h2 style="font-size: 16px;">Gastos lançados hoje</h2>
+                <h2 style="font-size: 16px;">Gastos lanÃ§ados hoje</h2>
                 <div id="expense-log"></div>
               </div>
             </div>
@@ -503,22 +503,22 @@
     const todayISO = () => new Date().toISOString().slice(0, 10);
     const fallbackFoods = [
       { id: "arroz-tipo-1-cozido", name: "Arroz, tipo 1, cozido", caloriesPer100g: 128, proteinPer100g: 2.5, carbsPer100g: 28.1 },
-      { id: "feijao-carioca-cozido", name: "Feijão, carioca, cozido", caloriesPer100g: 76, proteinPer100g: 4.8, carbsPer100g: 13.6 },
+      { id: "feijao-carioca-cozido", name: "FeijÃ£o, carioca, cozido", caloriesPer100g: 76, proteinPer100g: 4.8, carbsPer100g: 13.6 },
       { id: "frango-peito-sem-pele-grelhado", name: "Frango, peito, sem pele, grelhado", caloriesPer100g: 159, proteinPer100g: 32, carbsPer100g: 0 },
       { id: "ovo-de-galinha-inteiro-cozido-10minutos", name: "Ovo, de galinha, inteiro, cozido/10minutos", caloriesPer100g: 146, proteinPer100g: 13.3, carbsPer100g: 0.6 },
       { id: "banana-prata-crua", name: "Banana, prata, crua", caloriesPer100g: 98, proteinPer100g: 1.3, carbsPer100g: 26 },
-      { id: "pao-trigo-frances", name: "Pão, trigo, francês", caloriesPer100g: 300, proteinPer100g: 8, carbsPer100g: 58.6 },
+      { id: "pao-trigo-frances", name: "PÃ£o, trigo, francÃªs", caloriesPer100g: 300, proteinPer100g: 8, carbsPer100g: 58.6 },
       { id: "batata-inglesa-cozida", name: "Batata, inglesa, cozida", caloriesPer100g: 52, proteinPer100g: 1.2, carbsPer100g: 11.9 },
       { id: "carne-bovina-patinho-sem-gordura-grelhado", name: "Carne, bovina, patinho, sem gordura, grelhado", caloriesPer100g: 219, proteinPer100g: 35.9, carbsPer100g: 0 }
     ];
     let foods = fallbackFoods;
     try {
-      const dataModule = await import("./src/data/foods.js");
+      const dataModule = await import("./foods.js");
       if (Array.isArray(dataModule.foods) && dataModule.foods.length > 0) {
         foods = dataModule.foods;
       }
     } catch (error) {
-      console.warn("Base completa de alimentos não carregou; usando base mínima.", error);
+      console.warn("Base completa de alimentos nÃ£o carregou; usando base mÃ­nima.", error);
     }
     const popularFoodIds = [
       "arroz-tipo-1-cozido",
@@ -535,7 +535,7 @@
       { id: "trabalho-sentado", name: "Trabalho sentado", caloriesPerHour: 90 },
       { id: "academia", name: "Academia", caloriesPerHour: 420 },
       { id: "sono", name: "Sono", caloriesPerHour: 60 },
-      { id: "trabalho-em-pe", name: "Trabalho em pé", caloriesPerHour: 140 }
+      { id: "trabalho-em-pe", name: "Trabalho em pÃ©", caloriesPerHour: 140 }
     ];
 
     if (new URLSearchParams(window.location.search).get("clear") === "1") {
@@ -744,7 +744,7 @@
       const selectedDate = mealDate.value || todayISO();
       const meals = appData.meals.filter((item) => item.date === selectedDate);
       if (meals.length === 0) {
-        mealLog.innerHTML = '<div class="muted">Nenhum consumo lançado nesta data.</div>';
+        mealLog.innerHTML = '<div class="muted">Nenhum consumo lanÃ§ado nesta data.</div>';
         return;
       }
       mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`).join("");
@@ -772,7 +772,7 @@
       const selectedDate = expenseDate.value || todayISO();
       const expenses = appData.expenses.filter((item) => item.date === selectedDate);
       if (expenses.length === 0) {
-        expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
+        expenseLog.innerHTML = '<div class="muted">Nenhum gasto lanÃ§ado nesta data.</div>';
         return;
       }
       expenseLog.innerHTML = expenses.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div><button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`).join("");
@@ -883,3 +883,4 @@
   </script>
 </body>
 </html>
+
