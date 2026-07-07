@@ -538,6 +538,11 @@
       { id: "trabalho-em-pe", name: "Trabalho em pé", caloriesPerHour: 140 }
     ];
 
+    if (new URLSearchParams(window.location.search).get("clear") === "1") {
+      localStorage.removeItem(storageKey);
+      history.replaceState(null, "", window.location.pathname);
+    }
+
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
     let selectedFoodId = popularFoodIds.find((id) => foods.some((food) => food.id === id)) || foods[0]?.id;
     let selectedActivityId = activityPresets[0].id;
