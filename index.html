@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dieta Controlada - Prévia Mobile</title>
+  <title>Dieta Controlada</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,44 +12,16 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(circle at top left, rgba(70, 107, 45, 0.20), transparent 32rem),
-        linear-gradient(135deg, #e8eedc, #f7f8f1);
+      background: #f5f7ef;
       color: #243119;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      display: grid;
-      place-items: center;
-      padding: 28px;
-    }
-
-    .stage {
-      display: grid;
-      gap: 18px;
-      justify-items: center;
-    }
-
-    .hint {
-      color: #526344;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .phone {
-      width: 390px;
-      max-width: calc(100vw - 32px);
-      height: 820px;
-      max-height: calc(100vh - 96px);
-      background: #11150f;
-      border-radius: 46px;
-      padding: 14px;
-      box-shadow: 0 30px 80px rgba(36, 49, 25, 0.30);
-      position: relative;
     }
 
     .screen {
-      height: 100%;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
       overflow: auto;
-      border-radius: 36px;
       background: #f5f7ef;
       scrollbar-width: none;
     }
@@ -58,20 +30,8 @@
       display: none;
     }
 
-    .notch {
-      position: absolute;
-      top: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 110px;
-      height: 28px;
-      background: #11150f;
-      border-radius: 999px;
-      z-index: 3;
-    }
-
     header {
-      padding: 42px 20px 8px;
+      padding: max(12px, env(safe-area-inset-top)) 20px 8px;
     }
 
     h1 {
@@ -342,11 +302,7 @@
   </style>
 </head>
 <body>
-  <div class="stage">
-    <div class="hint">Prévia em tamanho de celular: 390 × 820 px</div>
-    <div class="phone">
-      <div class="notch"></div>
-      <div class="screen">
+  <div class="screen">
         <header>
           <h1>Dieta Controlada</h1>
         </header>
@@ -505,8 +461,6 @@
             </div>
           </section>
         </main>
-      </div>
-    </div>
   </div>
 
   <script>
