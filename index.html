@@ -311,7 +311,6 @@
           <button class="tab active" data-tab="hoje">Resumo</button>
           <button class="tab" data-tab="refeicao">Consumo</button>
           <button class="tab" data-tab="gasto">Gasto</button>
-          <button class="tab" data-tab="cadastro">Cadastro</button>
         </nav>
 
         <main>
@@ -448,18 +447,6 @@
             </div>
           </section>
 
-          <section id="cadastro" class="hidden">
-            <div class="card">
-              <h2>Cadastrar item</h2>
-              <label>Nome <input placeholder="Ex: Batata doce cozida" /></label>
-              <label>Categoria <input placeholder="Carboidrato" /></label>
-              <label>Calorias por 100g <input placeholder="86" /></label>
-              <label>Proteína por 100g <input placeholder="1.6" /></label>
-              <label>Carboidrato por 100g <input placeholder="20" /></label>
-              <label>Gordura por 100g <input placeholder="0.1" /></label>
-              <button class="button">Salvar item</button>
-            </div>
-          </section>
         </main>
   </div>
 
@@ -469,6 +456,7 @@
     const periodButtons = document.querySelectorAll(".period-button");
     const saldoTitle = document.getElementById("saldo-title");
     const chart = document.getElementById("balance-chart");
+    const formatSigned = (value) => value > 0 ? `+${value}` : `${value}`;
     const fullSeries = [
       { date: "30/06", weekday: 1, daily: -120 },
       { date: "01/07", weekday: 2, daily: -140 },
@@ -533,7 +521,7 @@
           const positive = item.daily > 0;
           return `
             <div class="chart-col">
-              <div class="chart-value ${positive ? "positive" : ""}">${item.daily}</div>
+              <div class="chart-value ${positive ? "positive" : ""}">${formatSigned(item.daily)}</div>
               <div class="chart-bar ${positive ? "positive" : ""}" style="height: ${height}px;"></div>
               <div class="chart-date">${item.date}</div>
             </div>

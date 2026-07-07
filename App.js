@@ -14,11 +14,18 @@ import {
   View
 } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
+import { activities as activityPresets } from "./src/data/activities";
+import { foods as starterFoods } from "./src/data/foods";
 import { calculateNutrition, getPeriodStart, round, todayISO } from "./src/utils/nutrition";
 
 const STORAGE_KEY = "@dieta-controlada:v1";
 
-const starterFoods = [
+function formatSigned(value) {
+  const number = Number(value) || 0;
+  return number > 0 ? `+${number}` : `${number}`;
+}
+
+const legacyStarterFoods = [
   {
     id: "arroz",
     name: "Arroz branco cozido",
@@ -48,7 +55,7 @@ const starterFoods = [
   }
 ];
 
-const activityPresets = [
+const legacyActivityPresets = [
   {
     id: "caminhada",
     name: "Caminhada",
@@ -86,14 +93,6 @@ export default function App() {
   const [state, setState] = useState(initialState);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [period, setPeriod] = useState("day");
-  const [foodForm, setFoodForm] = useState({
-    name: "",
-    category: "",
-    caloriesPer100g: "",
-    proteinPer100g: "",
-    carbsPer100g: "",
-    fatPer100g: ""
-  });
   const [mealForm, setMealForm] = useState({
     date: todayISO(),
     foodId: starterFoods[0].id,
@@ -208,35 +207,6 @@ export default function App() {
   const todayMeals = state.meals.filter((meal) => meal.date === todayISO());
   const todayExpenses = state.expenses.filter((expense) => expense.date === todayISO());
 
-  function addFood() {
-    if (!foodForm.name || !foodForm.caloriesPer100g) {
-      Alert.alert("Faltou algo", "Informe pelo menos o nome e as calorias por 100g.");
-      return;
-    }
-
-    const newFood = {
-      id: `${Date.now()}`,
-      name: foodForm.name.trim(),
-      category: foodForm.category.trim() || "Outro",
-      caloriesPer100g: Number(foodForm.caloriesPer100g),
-      proteinPer100g: Number(foodForm.proteinPer100g) || 0,
-      carbsPer100g: Number(foodForm.carbsPer100g) || 0,
-      fatPer100g: Number(foodForm.fatPer100g) || 0
-    };
-
-    setState((current) => ({ ...current, foods: [newFood, ...current.foods] }));
-    setMealForm((current) => ({ ...current, foodId: newFood.id }));
-    setFoodForm({
-      name: "",
-      category: "",
-      caloriesPer100g: "",
-      proteinPer100g: "",
-      carbsPer100g: "",
-      fatPer100g: ""
-    });
-    setActiveTab("meal");
-  }
-
   function addMeal() {
     const food = state.foods.find((item) => item.id === mealForm.foodId);
 
@@ -298,7 +268,6 @@ export default function App() {
           <Tab label="Resumo" active={activeTab === "dashboard"} onPress={() => setActiveTab("dashboard")} />
           <Tab label="Consumo" active={activeTab === "meal"} onPress={() => setActiveTab("meal")} />
           <Tab label="Gasto" active={activeTab === "expense"} onPress={() => setActiveTab("expense")} />
-          <Tab label="Cadastro" active={activeTab === "food"} onPress={() => setActiveTab("food")} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
@@ -314,7 +283,7 @@ export default function App() {
                   <PeriodButton label="Sempre" active={period === "all"} onPress={() => setPeriod("all")} />
                 </View>
                 <Text style={[styles.balance, balance > 0 ? styles.balancePositive : styles.balanceNegative]}>
-                  {balance} kcal
+                  {formatSigned(balance)} kcal
                 </Text>
                 <Text style={styles.muted}>{balanceStatus}</Text>
               </View>
@@ -579,7 +548,7 @@ function BalanceEvolutionChart({ data }) {
         return (
           <View key={point.date} style={styles.chartColumn}>
             <Text style={[styles.chartValue, point.dailyBalance > 0 ? styles.chartPositiveText : styles.chartNegativeText]}>
-              {point.dailyBalance}
+              {formatSigned(point.dailyBalance)}
             </Text>
             <View
               style={[
