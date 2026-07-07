@@ -442,8 +442,6 @@
   </div>
 
   <script type="module">
-    import { foods } from "./src/data/foods.js";
-
     const tabs = document.querySelectorAll(".tab");
     const sections = document.querySelectorAll("main > section");
     const periodButtons = document.querySelectorAll(".period-button");
@@ -478,6 +476,25 @@
     const normalizeText = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const round = (value) => Math.round(value * 10) / 10;
     const todayISO = () => new Date().toISOString().slice(0, 10);
+    const fallbackFoods = [
+      { id: "arroz-tipo-1-cozido", name: "Arroz, tipo 1, cozido", caloriesPer100g: 128, proteinPer100g: 2.5, carbsPer100g: 28.1 },
+      { id: "feijao-carioca-cozido", name: "Feijão, carioca, cozido", caloriesPer100g: 76, proteinPer100g: 4.8, carbsPer100g: 13.6 },
+      { id: "frango-peito-sem-pele-grelhado", name: "Frango, peito, sem pele, grelhado", caloriesPer100g: 159, proteinPer100g: 32, carbsPer100g: 0 },
+      { id: "ovo-de-galinha-inteiro-cozido-10minutos", name: "Ovo, de galinha, inteiro, cozido/10minutos", caloriesPer100g: 146, proteinPer100g: 13.3, carbsPer100g: 0.6 },
+      { id: "banana-prata-crua", name: "Banana, prata, crua", caloriesPer100g: 98, proteinPer100g: 1.3, carbsPer100g: 26 },
+      { id: "pao-trigo-frances", name: "Pão, trigo, francês", caloriesPer100g: 300, proteinPer100g: 8, carbsPer100g: 58.6 },
+      { id: "batata-inglesa-cozida", name: "Batata, inglesa, cozida", caloriesPer100g: 52, proteinPer100g: 1.2, carbsPer100g: 11.9 },
+      { id: "carne-bovina-patinho-sem-gordura-grelhado", name: "Carne, bovina, patinho, sem gordura, grelhado", caloriesPer100g: 219, proteinPer100g: 35.9, carbsPer100g: 0 }
+    ];
+    let foods = fallbackFoods;
+    try {
+      const dataModule = await import("./src/data/foods.js");
+      if (Array.isArray(dataModule.foods) && dataModule.foods.length > 0) {
+        foods = dataModule.foods;
+      }
+    } catch (error) {
+      console.warn("Base completa de alimentos não carregou; usando base mínima.", error);
+    }
     const popularFoodIds = [
       "arroz-tipo-1-cozido",
       "feijao-carioca-cozido",
