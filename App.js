@@ -174,24 +174,7 @@ export default function App() {
       return realData;
     }
 
-    const sample = [
-      { date: "01/07", dailyBalance: -120 },
-      { date: "02/07", dailyBalance: -140 },
-      { date: "03/07", dailyBalance: 80 },
-      { date: "04/07", dailyBalance: -180 },
-      { date: "05/07", dailyBalance: -60 },
-      { date: "06/07", dailyBalance: 110 },
-      { date: "07/07", dailyBalance: -90 }
-    ];
-    let sampleRunning = 0;
-    const sampleData = sample.map((item) => {
-      sampleRunning = round(sampleRunning + item.dailyBalance);
-      return { ...item, cumulativeBalance: sampleRunning };
-    });
-
-    if (period === "day") return sampleData.slice(-1);
-    if (period === "month" || period === "all") return sampleData;
-    return sampleData.slice(-7);
+    return [];
   }, [period, state]);
 
   const balance = round(totals.calories - totals.spent);
@@ -225,6 +208,22 @@ export default function App() {
       acc[category].carbs = round(acc[category].carbs + meal.carbs);
       acc[category].fat = round(acc[category].fat + meal.fat);
       acc[category].grams = round(acc[category].grams + meal.grams);
+
+      return acc;
+    }, {})
+  );
+  const expensesByActivity = Object.values(
+    periodExpenses.reduce((acc, expense) => {
+      const activity = activityPresets.find((item) => item.id === expense.activityId);
+      const name = activity?.name || expense.description || "Atividade";
+
+      acc[name] = acc[name] || {
+        name,
+        minutes: 0,
+        calories: 0
+      };
+      acc[name].minutes = round(acc[name].minutes + (Number(expense.minutes) || 0));
+      acc[name].calories = round(acc[name].calories + (Number(expense.calories) || 0));
 
       return acc;
     }, {})
@@ -312,10 +311,16 @@ export default function App() {
               </View>
 
               <Section title="Evolução do saldo acumulado">
-                <BalanceEvolutionChart data={balanceSeries} />
-                <Text style={styles.muted}>
-                  Colunas mostram o saldo do dia. A linha mostra o saldo acumulado.
-                </Text>
+                {balanceSeries.length === 0 ? (
+                  <Text style={styles.muted}>Registre consumo e gasto para gerar o gráfico.</Text>
+                ) : (
+                  <>
+                    <BalanceEvolutionChart data={balanceSeries} />
+                    <Text style={styles.muted}>
+                      Colunas mostram o saldo do dia. A linha mostra o saldo acumulado.
+                    </Text>
+                  </>
+                )}
               </Section>
 
               <View style={styles.grid}>
@@ -334,10 +339,10 @@ export default function App() {
               </Section>
 
               <Section title={`Gastos de ${periodLabel}`}>
-                {periodExpenses.length === 0 ? (
+                {expensesByActivity.length === 0 ? (
                   <Text style={styles.muted}>Nenhuma atividade registrada neste período.</Text>
                 ) : (
-                  periodExpenses.map((expense) => <ActivityItem key={expense.id} activity={expense} />)
+                  expensesByActivity.map((expense) => <ExpenseActivitySummary key={expense.name} expense={expense} />)
                 )}
               </Section>
             </>
@@ -532,6 +537,23 @@ function ActivityItem({ activity }) {
         </Text>
       </View>
       <Text style={styles.mealCalories}>{activity.calories} kcal</Text>
+    </View>
+  );
+}
+
+function ExpenseActivitySummary({ expense }) {
+  const hours = round(expense.minutes / 60);
+
+  return (
+    <View style={styles.mealItem}>
+      <View style={styles.mealText}>
+        <Text style={styles.mealTitle}>{expense.name}</Text>
+        <Text style={styles.muted}>{expense.minutes} min acumulados</Text>
+      </View>
+      <View style={styles.macroSummary}>
+        <Text style={styles.macroSummaryText}>{expense.calories} kcal</Text>
+        <Text style={styles.macroSummaryText}>{hours}h total</Text>
+      </View>
     </View>
   );
 }

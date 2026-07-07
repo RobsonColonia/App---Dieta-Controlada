@@ -334,8 +334,8 @@
                 <span class="period-button" data-period="mês">Mês</span>
                 <span class="period-button" data-period="sempre">Sempre</span>
               </div>
-              <div class="balance">-400 kcal</div>
-              <div class="muted">Déficit calórico</div>
+              <div class="balance">0 kcal</div>
+              <div class="muted">Registre consumo e gasto para acompanhar seu saldo.</div>
             </div>
 
             <div class="card" style="margin-top: 14px;">
@@ -370,21 +370,8 @@
             </div>
 
             <div class="card" style="margin-top: 14px;">
-              <h2>Gastos de hoje</h2>
-              <div class="meal">
-                <div>
-                  <div class="meal-name">Trabalho sentado</div>
-                  <div class="muted">8h • média pré-programada</div>
-                </div>
-                <div class="meal-kcal">720 kcal</div>
-              </div>
-              <div class="meal">
-                <div>
-                  <div class="meal-name">Caminhada</div>
-                  <div class="muted">45 min • média pré-programada</div>
-                </div>
-                <div class="meal-kcal">180 kcal</div>
-              </div>
+              <h2 id="gasto-title">Gastos de hoje</h2>
+              <div id="gasto-resumo"></div>
             </div>
           </section>
 
@@ -455,17 +442,10 @@
     const chart = document.getElementById("balance-chart");
     const consumoTitle = document.getElementById("consumo-title");
     const consumoResumo = document.getElementById("consumo-resumo");
+    const gastoTitle = document.getElementById("gasto-title");
+    const gastoResumo = document.getElementById("gasto-resumo");
     const formatSigned = (value) => value > 0 ? `+${value}` : `${value}`;
-    const fullSeries = [
-      { date: "30/06", weekday: 1, daily: -120 },
-      { date: "01/07", weekday: 2, daily: -140 },
-      { date: "02/07", weekday: 3, daily: 80 },
-      { date: "03/07", weekday: 4, daily: -180 },
-      { date: "04/07", weekday: 5, daily: -60 },
-      { date: "05/07", weekday: 6, daily: 110 },
-      { date: "06/07", weekday: 0, daily: -90 },
-      { date: "07/07", weekday: 1, daily: -160 }
-    ];
+    const fullSeries = [];
 
     function seriesForPeriod(period) {
       if (period === "hoje") return fullSeries.slice(-1);
@@ -484,6 +464,10 @@
         running += item.daily;
         return { ...item, cumulative: running };
       });
+      if (data.length === 0) {
+        chart.innerHTML = '<div class="muted">Registre consumo e gasto para gerar o gráfico.</div>';
+        return;
+      }
       const values = data.flatMap((item) => [item.daily, item.cumulative, 0]);
       const min = Math.min(...values);
       const max = Math.max(...values);
@@ -538,26 +522,15 @@
       `;
     }
 
-    const sampleConsumption = [
-      { period: "hoje", category: "Proteína", grams: 150, calories: 248, protein: 46.5, carbs: 0, fat: 5.4 },
-      { period: "hoje", category: "Carboidrato", grams: 120, calories: 156, protein: 3.2, carbs: 33.6, fat: 0.4 },
-      { period: "semana", category: "Proteína", grams: 820, calories: 1353, protein: 254, carbs: 3, fat: 30 },
-      { period: "semana", category: "Carboidrato", grams: 1260, calories: 1498, protein: 38, carbs: 311, fat: 7 },
-      { period: "semana", category: "Fruta", grams: 620, calories: 552, protein: 8, carbs: 141, fat: 1 },
-      { period: "últimos 7 dias", category: "Proteína", grams: 980, calories: 1617, protein: 303, carbs: 4, fat: 36 },
-      { period: "últimos 7 dias", category: "Carboidrato", grams: 1430, calories: 1720, protein: 42, carbs: 358, fat: 9 },
-      { period: "últimos 7 dias", category: "Fruta", grams: 760, calories: 676, protein: 10, carbs: 173, fat: 1 },
-      { period: "mês", category: "Proteína", grams: 3520, calories: 5808, protein: 1091, carbs: 14, fat: 127 },
-      { period: "mês", category: "Carboidrato", grams: 5080, calories: 6224, protein: 153, carbs: 1288, fat: 31 },
-      { period: "mês", category: "Fruta", grams: 2440, calories: 2172, protein: 32, carbs: 556, fat: 2 },
-      { period: "sempre", category: "Proteína", grams: 3520, calories: 5808, protein: 1091, carbs: 14, fat: 127 },
-      { period: "sempre", category: "Carboidrato", grams: 5080, calories: 6224, protein: 153, carbs: 1288, fat: 31 },
-      { period: "sempre", category: "Fruta", grams: 2440, calories: 2172, protein: 32, carbs: 556, fat: 2 }
-    ];
+    const sampleConsumption = [];
 
     function renderConsumption(period = "hoje") {
       consumoTitle.textContent = `Consumo de ${period}`;
       const data = sampleConsumption.filter((item) => item.period === period);
+      if (data.length === 0) {
+        consumoResumo.innerHTML = '<div class="muted">Nenhum consumo registrado neste período.</div>';
+        return;
+      }
       consumoResumo.innerHTML = data
         .map((item) => `
           <div class="meal">
@@ -569,6 +542,31 @@
               <div>${item.calories} kcal</div>
               <div>${item.protein}g pro</div>
               <div>${item.carbs}g carb</div>
+            </div>
+          </div>
+        `)
+        .join("");
+    }
+
+    const sampleExpenses = [];
+
+    function renderExpenses(period = "hoje") {
+      gastoTitle.textContent = `Gastos de ${period}`;
+      const data = sampleExpenses.filter((item) => item.period === period);
+      if (data.length === 0) {
+        gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste período.</div>';
+        return;
+      }
+      gastoResumo.innerHTML = data
+        .map((item) => `
+          <div class="meal">
+            <div>
+              <div class="meal-name">${item.activity}</div>
+              <div class="muted">${item.minutes} min acumulados</div>
+            </div>
+            <div class="macro-summary">
+              <div>${item.calories} kcal</div>
+              <div>${Math.round((item.minutes / 60) * 10) / 10}h total</div>
             </div>
           </div>
         `)
@@ -591,11 +589,13 @@
         saldoTitle.textContent = `Saldo de ${button.dataset.period}`;
         renderChart(button.dataset.period);
         renderConsumption(button.dataset.period);
+        renderExpenses(button.dataset.period);
       });
     });
 
     renderChart("hoje");
     renderConsumption("hoje");
+    renderExpenses("hoje");
   </script>
 </body>
 </html>
