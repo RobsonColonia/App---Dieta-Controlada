@@ -882,16 +882,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF"
   },
   foodList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: 8
   },
   foodPill: {
     borderColor: "#D8E2C6",
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: 14,
     paddingHorizontal: 12,
-    paddingVertical: 9
+    paddingVertical: 11,
+    backgroundColor: "#F5F7EF"
   },
   foodPillActive: {
     backgroundColor: "#466B2D",
@@ -899,7 +898,7 @@ const styles = StyleSheet.create({
   },
   foodPillText: {
     color: "#466B2D",
-    fontWeight: "700"
+    fontWeight: "800"
   },
   foodPillTextActive: {
     color: "#FFFFFF"

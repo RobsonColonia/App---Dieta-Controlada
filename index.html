@@ -286,9 +286,8 @@
     }
 
     .pill-row {
-      display: flex;
+      display: grid;
       gap: 8px;
-      flex-wrap: wrap;
     }
 
     .selector-tabs {
@@ -314,12 +313,15 @@
     }
 
     .pill {
+      width: 100%;
       border: 1px solid #d8e2c6;
-      border-radius: 999px;
+      border-radius: 14px;
+      background: #f5f7ef;
       color: #466b2d;
-      padding: 9px 12px;
+      padding: 11px 12px;
       font-size: 13px;
       font-weight: 800;
+      text-align: left;
     }
 
     .pill.active {
@@ -501,10 +503,16 @@
         : allFoods.filter((item) => !search || normalizeText(item).includes(search));
 
       foodOptions.innerHTML = source
-        .map((item, index) => `<span class="pill ${index === 0 ? "active" : ""}">${item}</span>`)
+        .map((item, index) => `<button type="button" class="pill ${index === 0 ? "active" : ""}">${item}</button>`)
         .join("");
       foodSearchWrap.classList.toggle("hidden", mode !== "all");
       foodHint.classList.toggle("hidden", mode !== "all" || Boolean(search));
+      foodOptions.querySelectorAll(".pill").forEach((item) => {
+        item.addEventListener("click", () => {
+          foodOptions.querySelectorAll(".pill").forEach((pill) => pill.classList.remove("active"));
+          item.classList.add("active");
+        });
+      });
     }
     const fullSeries = [];
 
