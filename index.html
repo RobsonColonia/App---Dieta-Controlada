@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dieta Controlada - Prévia Mobile</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(70, 107, 45, 0.20), transparent 32rem),
+        linear-gradient(135deg, #e8eedc, #f7f8f1);
+      color: #243119;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .stage {
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+    }
+
+    .hint {
+      color: #526344;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .phone {
+      width: 390px;
+      max-width: calc(100vw - 32px);
+      height: 820px;
+      max-height: calc(100vh - 96px);
+      background: #11150f;
+      border-radius: 46px;
+      padding: 14px;
+      box-shadow: 0 30px 80px rgba(36, 49, 25, 0.30);
+      position: relative;
+    }
+
+    .screen {
+      height: 100%;
+      overflow: auto;
+      border-radius: 36px;
+      background: #f5f7ef;
+      scrollbar-width: none;
+    }
+
+    .screen::-webkit-scrollbar {
+      display: none;
+    }
+
+    .notch {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 28px;
+      background: #11150f;
+      border-radius: 999px;
+      z-index: 3;
+    }
+
+    header {
+      padding: 42px 20px 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      color: #607052;
+      margin-top: 7px;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 5px;
+      padding: 0 16px 12px;
+    }
+
+    .tab {
+      border: 0;
+      flex: 1;
+      border-radius: 999px;
+      padding: 9px 5px;
+      background: #e6ecd8;
+      color: #466b2d;
+      font-weight: 800;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: #466b2d;
+      color: #fff;
+    }
+
+    main {
+      padding: 0 16px 26px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero {
+      background: #243119;
+      color: #fff;
+      border-radius: 24px;
+      padding: 22px;
+    }
+
+    .hero .title {
+      color: #dce9cf;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .balance {
+      color: #9fe870;
+      font-size: 46px;
+      line-height: 1;
+      margin: 11px 0 9px;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+    }
+
+    .period-filter {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 5px;
+      margin-top: 13px;
+    }
+
+    .period-button {
+      border-radius: 999px;
+      background: #334923;
+      color: #dce9cf;
+      padding: 7px 7px;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .period-button.active {
+      background: #9fe870;
+      color: #243119;
+    }
+
+    .muted {
+      color: #748167;
+      font-size: 13px;
+    }
+
+    .hero .muted {
+      color: #c7d5b9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric,
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(36, 49, 25, 0.06);
+    }
+
+    .metric {
+      padding: 15px;
+    }
+
+    .metric-label {
+      color: #748167;
+      font-size: 13px;
+    }
+
+    .metric-value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .chart {
+      position: relative;
+      min-height: 160px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 12px;
+    }
+
+    .chart-svg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 8px;
+      width: 100%;
+      height: 128px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .chart-col {
+      flex: 1;
+      display: grid;
+      justify-items: center;
+      align-content: end;
+      gap: 6px;
+      min-width: 0;
+      z-index: 1;
+    }
+
+    .chart-value {
+      color: #466b2d;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .chart-value.positive {
+      color: #d94b4b;
+    }
+
+    .chart-bar {
+      width: 72%;
+      border-radius: 999px;
+      background: #466b2d;
+    }
+
+    .chart-bar.positive {
+      background: #ff6b6b;
+    }
+
+    .chart-date {
+      color: #748167;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .card {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #39492d;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #d8e2c6;
+      background: #f5f7ef;
+      border-radius: 14px;
+      padding: 13px 14px;
+      color: #243119;
+      font: inherit;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 16px;
+      background: #466b2d;
+      color: #fff;
+      padding: 14px;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    .meal {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      border-top: 1px solid #eef2e6;
+      padding-top: 12px;
+    }
+
+    .meal-name {
+      font-weight: 900;
+    }
+
+    .meal-kcal {
+      color: #466b2d;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid #d8e2c6;
+      border-radius: 999px;
+      color: #466b2d;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .pill.active {
+      background: #466b2d;
+      border-color: #466b2d;
+      color: #fff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="hint">Prévia em tamanho de celular: 390 × 820 px</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+        <header>
+          <h1>Dieta Controlada</h1>
+        </header>
+
+        <nav class="tabs" aria-label="Abas do app">
+          <button class="tab active" data-tab="hoje">Resumo</button>
+          <button class="tab" data-tab="refeicao">Consumo</button>
+          <button class="tab" data-tab="gasto">Gasto</button>
+          <button class="tab" data-tab="cadastro">Cadastro</button>
+        </nav>
+
+        <main>
+          <section id="hoje">
+            <div class="hero">
+              <div class="title" id="saldo-title">Saldo de hoje</div>
+              <div class="period-filter">
+                <span class="period-button active" data-period="hoje">Hoje</span>
+                <span class="period-button" data-period="semana">Semana</span>
+                <span class="period-button" data-period="últimos 7 dias">Últ. 7 dias</span>
+                <span class="period-button" data-period="mês">Mês</span>
+                <span class="period-button" data-period="sempre">Sempre</span>
+              </div>
+              <div class="balance">-400 kcal</div>
+              <div class="muted">Déficit calórico</div>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <h2>Evolução do saldo acumulado</h2>
+              <div class="chart" id="balance-chart" aria-label="Gráfico de saldo diário e acumulado">
+              </div>
+              <div class="muted">Colunas = saldo do dia. Linha = saldo acumulado. Semana começa na segunda.</div>
+            </div>
+
+            <div class="grid" style="margin-top: 14px;">
+              <div class="metric">
+                <div class="metric-label">Consumido</div>
+                <div class="metric-value">2.100 kcal</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Gasto</div>
+                <div class="metric-value">2.500 kcal</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Proteínas</div>
+                <div class="metric-value">135 g</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Carboidratos</div>
+                <div class="metric-value">220 g</div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <h2>Consumo de hoje</h2>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Peito de frango grelhado</div>
+                  <div class="muted">150g</div>
+                </div>
+                <div class="meal-kcal">248 kcal</div>
+              </div>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Arroz branco cozido</div>
+                  <div class="muted">120g</div>
+                </div>
+                <div class="meal-kcal">156 kcal</div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <h2>Gastos de hoje</h2>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Trabalho sentado</div>
+                  <div class="muted">8h • média pré-programada</div>
+                </div>
+                <div class="meal-kcal">720 kcal</div>
+              </div>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Caminhada</div>
+                  <div class="muted">45 min • média pré-programada</div>
+                </div>
+                <div class="meal-kcal">180 kcal</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="refeicao" class="hidden">
+            <div class="card">
+              <h2>Registrar consumo</h2>
+              <label>Data <input value="2026-07-07" /></label>
+              <div>
+                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item consumido</div>
+                <div class="pill-row">
+                  <span class="pill active">Frango</span>
+                  <span class="pill">Arroz</span>
+                  <span class="pill">Feijão</span>
+                  <span class="pill">Ovo</span>
+                </div>
+              </div>
+              <label>Quantidade em gramas/ml <input value="150" /></label>
+              <button class="button">Salvar consumo</button>
+            </div>
+          </section>
+
+          <section id="gasto" class="hidden">
+            <div class="card">
+              <h2>Registrar gasto diário</h2>
+              <label>Data <input value="2026-07-07" /></label>
+              <div>
+                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Atividade</div>
+                <div class="pill-row">
+                  <span class="pill active">Caminhada</span>
+                  <span class="pill">Trabalho sentado</span>
+                  <span class="pill">Academia</span>
+                  <span class="pill">Sono</span>
+                  <span class="pill">Trabalho em pé</span>
+                </div>
+              </div>
+              <label>Tempo em minutos <input value="45" /></label>
+              <div class="muted">Caminhada: 240 kcal/h. Com 45 min, o gasto estimado será 180 kcal.</div>
+              <button class="button">Salvar atividade</button>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <h2>Atividades cadastradas hoje</h2>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Sono</div>
+                  <div class="muted">480 min</div>
+                </div>
+                <div class="meal-kcal">480 kcal</div>
+              </div>
+              <div class="meal">
+                <div>
+                  <div class="meal-name">Trabalho sentado</div>
+                  <div class="muted">480 min</div>
+                </div>
+                <div class="meal-kcal">720 kcal</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="cadastro" class="hidden">
+            <div class="card">
+              <h2>Cadastrar item</h2>
+              <label>Nome <input placeholder="Ex: Batata doce cozida" /></label>
+              <label>Categoria <input placeholder="Carboidrato" /></label>
+              <label>Calorias por 100g <input placeholder="86" /></label>
+              <label>Proteína por 100g <input placeholder="1.6" /></label>
+              <label>Carboidrato por 100g <input placeholder="20" /></label>
+              <label>Gordura por 100g <input placeholder="0.1" /></label>
+              <button class="button">Salvar item</button>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    const sections = document.querySelectorAll("main > section");
+    const periodButtons = document.querySelectorAll(".period-button");
+    const saldoTitle = document.getElementById("saldo-title");
+    const chart = document.getElementById("balance-chart");
+    const fullSeries = [
+      { date: "30/06", weekday: 1, daily: -120 },
+      { date: "01/07", weekday: 2, daily: -140 },
+      { date: "02/07", weekday: 3, daily: 80 },
+      { date: "03/07", weekday: 4, daily: -180 },
+      { date: "04/07", weekday: 5, daily: -60 },
+      { date: "05/07", weekday: 6, daily: 110 },
+      { date: "06/07", weekday: 0, daily: -90 },
+      { date: "07/07", weekday: 1, daily: -160 }
+    ];
+
+    function seriesForPeriod(period) {
+      if (period === "hoje") return fullSeries.slice(-1);
+      if (period === "semana") {
+        const lastMondayIndex = fullSeries.map((item) => item.weekday).lastIndexOf(1);
+        return fullSeries.slice(lastMondayIndex);
+      }
+      if (period === "últimos 7 dias") return fullSeries.slice(-7);
+      if (period === "mês") return fullSeries;
+      return fullSeries;
+    }
+
+    function renderChart(period = "hoje") {
+      let running = 0;
+      const data = seriesForPeriod(period).map((item) => {
+        running += item.daily;
+        return { ...item, cumulative: running };
+      });
+      const values = data.flatMap((item) => [item.daily, item.cumulative, 0]);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = Math.max(max - min, 1);
+      const svgWidth = 300;
+      const svgHeight = 128;
+      const barAreaHeight = 92;
+      const xStep = data.length > 1 ? svgWidth / (data.length - 1) : svgWidth;
+      const yFromValue = (value) => svgHeight - 20 - ((value - min) / range) * (svgHeight - 28);
+      const points = data.map((item, index) => ({
+        x: data.length > 1 ? index * xStep : svgWidth / 2,
+        y: yFromValue(item.cumulative),
+        value: item.cumulative
+      }));
+      const segments = points
+        .slice(1)
+        .map((point, index) => {
+          const previous = points[index];
+          const color = point.value > previous.value ? "#ff6b6b" : "#466b2d";
+          return `<line x1="${previous.x}" y1="${previous.y}" x2="${point.x}" y2="${point.y}" stroke="${color}" stroke-width="3" stroke-linecap="round"></line>`;
+        })
+        .join("");
+      const circles = data
+        .map((item, index) => {
+          const cx = points[index].x;
+          const cy = points[index].y;
+          const fill = item.cumulative > 0 ? "#ff6b6b" : "#466b2d";
+          return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="${fill}"></circle>`;
+        })
+        .join("");
+      const bars = data
+        .map((item) => {
+          const height = Math.max(8, Math.abs(item.daily) / range * barAreaHeight);
+          const positive = item.daily > 0;
+          return `
+            <div class="chart-col">
+              <div class="chart-value ${positive ? "positive" : ""}">${item.daily}</div>
+              <div class="chart-bar ${positive ? "positive" : ""}" style="height: ${height}px;"></div>
+              <div class="chart-date">${item.date}</div>
+            </div>
+          `;
+        })
+        .join("");
+
+      chart.innerHTML = `
+        <svg class="chart-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none">
+          <line x1="0" y1="${yFromValue(0)}" x2="${svgWidth}" y2="${yFromValue(0)}" stroke="#e2e9d6" stroke-width="1"></line>
+          ${segments}
+          ${circles}
+        </svg>
+        ${bars}
+      `;
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((item) => item.classList.remove("active"));
+        sections.forEach((section) => section.classList.add("hidden"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.remove("hidden");
+      });
+    });
+
+    periodButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        periodButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        saldoTitle.textContent = `Saldo de ${button.dataset.period}`;
+        renderChart(button.dataset.period);
+      });
+    });
+
+    renderChart("hoje");
+  </script>
+</body>
+</html>
