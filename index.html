@@ -291,6 +291,28 @@
       flex-wrap: wrap;
     }
 
+    .selector-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .selector-tab {
+      flex: 1;
+      border: 1px solid #d8e2c6;
+      border-radius: 14px;
+      background: #f5f7ef;
+      color: #466b2d;
+      padding: 11px 8px;
+      font-weight: 900;
+    }
+
+    .selector-tab.active {
+      background: #466b2d;
+      border-color: #466b2d;
+      color: #fff;
+    }
+
     .pill {
       border: 1px solid #d8e2c6;
       border-radius: 999px;
@@ -381,12 +403,13 @@
               <label>Data <input value="2026-07-07" /></label>
               <div>
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item consumido</div>
-                <div class="pill-row">
-                  <span class="pill active">Frango</span>
-                  <span class="pill">Arroz</span>
-                  <span class="pill">Feijão</span>
-                  <span class="pill">Ovo</span>
+                <div class="selector-tabs">
+                  <button class="selector-tab active" data-food-mode="popular">Mais usados</button>
+                  <button class="selector-tab" data-food-mode="all">Todos itens</button>
                 </div>
+                <label id="food-search-wrap" class="hidden">Buscar alimento <input id="food-search" placeholder="Ex: arroz, frango, banana..." /></label>
+                <div class="pill-row" id="food-options"></div>
+                <div class="muted hidden" id="food-hint">Mostrando itens iniciais. Use a busca para encontrar outros alimentos.</div>
               </div>
               <label>Quantidade em gramas/ml <input value="150" /></label>
               <button class="button">Salvar consumo</button>
@@ -444,7 +467,45 @@
     const consumoResumo = document.getElementById("consumo-resumo");
     const gastoTitle = document.getElementById("gasto-title");
     const gastoResumo = document.getElementById("gasto-resumo");
+    const foodModeButtons = document.querySelectorAll("[data-food-mode]");
+    const foodOptions = document.getElementById("food-options");
+    const foodSearchWrap = document.getElementById("food-search-wrap");
+    const foodSearch = document.getElementById("food-search");
+    const foodHint = document.getElementById("food-hint");
     const formatSigned = (value) => value > 0 ? `+${value}` : `${value}`;
+    const normalizeText = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const popularFoods = ["Arroz", "Feijão", "Frango", "Ovo", "Banana", "Pão francês", "Batata", "Patinho"];
+    const allFoods = [
+      "Arroz integral cozido",
+      "Arroz tipo 1 cozido",
+      "Feijão carioca cozido",
+      "Feijão preto cozido",
+      "Frango peito grelhado",
+      "Ovo cozido",
+      "Banana prata",
+      "Pão francês",
+      "Batata inglesa cozida",
+      "Carne patinho grelhado",
+      "Leite integral",
+      "Aveia em flocos",
+      "Macarrão cozido",
+      "Maçã",
+      "Mamão",
+      "Queijo minas"
+    ];
+
+    function renderFoodOptions(mode = "popular") {
+      const search = normalizeText(foodSearch.value.trim());
+      const source = mode === "popular"
+        ? popularFoods
+        : allFoods.filter((item) => !search || normalizeText(item).includes(search));
+
+      foodOptions.innerHTML = source
+        .map((item, index) => `<span class="pill ${index === 0 ? "active" : ""}">${item}</span>`)
+        .join("");
+      foodSearchWrap.classList.toggle("hidden", mode !== "all");
+      foodHint.classList.toggle("hidden", mode !== "all" || Boolean(search));
+    }
     const fullSeries = [];
 
     function seriesForPeriod(period) {
@@ -535,7 +596,7 @@
         .map((item) => `
           <div class="meal">
             <div>
-              <div class="meal-name">${item.category}</div>
+              <div class="meal-name">${item.name}</div>
               <div class="muted">${item.grams}g/ml consumidos</div>
             </div>
             <div class="macro-summary">
@@ -582,6 +643,16 @@
       });
     });
 
+    foodModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        foodModeButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        renderFoodOptions(button.dataset.foodMode);
+      });
+    });
+
+    foodSearch.addEventListener("input", () => renderFoodOptions("all"));
+
     periodButtons.forEach((button) => {
       button.addEventListener("click", () => {
         periodButtons.forEach((item) => item.classList.remove("active"));
@@ -596,6 +667,7 @@
     renderChart("hoje");
     renderConsumption("hoje");
     renderExpenses("hoje");
+    renderFoodOptions("popular");
   </script>
 </body>
 </html>

@@ -25,6 +25,24 @@ function formatSigned(value) {
   return number > 0 ? `+${number}` : `${number}`;
 }
 
+function normalizeText(value) {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+const mostUsedFoodIds = [
+  "arroz-tipo-1-cozido",
+  "feijao-carioca-cozido",
+  "frango-peito-sem-pele-grelhado",
+  "ovo-de-galinha-inteiro-cozido-10minutos",
+  "banana-prata-crua",
+  "pao-trigo-frances",
+  "batata-inglesa-cozida",
+  "carne-bovina-patinho-sem-gordura-grelhado"
+];
+
 const legacyStarterFoods = [
   {
     id: "arroz",
@@ -93,6 +111,8 @@ export default function App() {
   const [state, setState] = useState(initialState);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [period, setPeriod] = useState("day");
+  const [foodMode, setFoodMode] = useState("popular");
+  const [foodSearch, setFoodSearch] = useState("");
   const [mealForm, setMealForm] = useState({
     date: todayISO(),
     foodId: starterFoods[0].id,
@@ -115,7 +135,11 @@ export default function App() {
   async function loadData() {
     const saved = await AsyncStorage.getItem(STORAGE_KEY);
     if (saved) {
-      setState(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      setState({
+        ...parsed,
+        foods: starterFoods
+      });
     }
   }
 
@@ -190,24 +214,38 @@ export default function App() {
   const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
   const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
-  const consumptionByCategory = Object.values(
+  const visibleFoods = useMemo(() => {
+    if (foodMode === "popular") {
+      return mostUsedFoodIds
+        .map((id) => state.foods.find((food) => food.id === id))
+        .filter(Boolean);
+    }
+
+    const search = normalizeText(foodSearch.trim());
+    const foods = search
+      ? state.foods.filter((food) => normalizeText(food.name).includes(search))
+      : state.foods;
+
+    return foods.slice(0, search ? 120 : 80);
+  }, [foodMode, foodSearch, state.foods]);
+  const consumptionByFood = Object.values(
     periodMeals.reduce((acc, meal) => {
       const food = state.foods.find((item) => item.id === meal.foodId);
-      const category = food?.category || "Outros";
+      const name = food?.name || meal.foodName || "Alimento";
 
-      acc[category] = acc[category] || {
-        category,
+      acc[name] = acc[name] || {
+        name,
         calories: 0,
         protein: 0,
         carbs: 0,
         fat: 0,
         grams: 0
       };
-      acc[category].calories = round(acc[category].calories + meal.calories);
-      acc[category].protein = round(acc[category].protein + meal.protein);
-      acc[category].carbs = round(acc[category].carbs + meal.carbs);
-      acc[category].fat = round(acc[category].fat + meal.fat);
-      acc[category].grams = round(acc[category].grams + meal.grams);
+      acc[name].calories = round(acc[name].calories + meal.calories);
+      acc[name].protein = round(acc[name].protein + meal.protein);
+      acc[name].carbs = round(acc[name].carbs + meal.carbs);
+      acc[name].fat = round(acc[name].fat + meal.fat);
+      acc[name].grams = round(acc[name].grams + meal.grams);
 
       return acc;
     }, {})
@@ -331,10 +369,10 @@ export default function App() {
               </View>
 
               <Section title={`Consumo de ${periodLabel}`}>
-                {consumptionByCategory.length === 0 ? (
+                {consumptionByFood.length === 0 ? (
                   <Text style={styles.muted}>Nenhum consumo registrado neste período.</Text>
                 ) : (
-                  consumptionByCategory.map((item) => <ConsumptionCategoryItem key={item.category} item={item} />)
+                  consumptionByFood.map((item) => <ConsumptionFoodItem key={item.name} item={item} />)
                 )}
               </Section>
 
@@ -352,8 +390,34 @@ export default function App() {
             <Section title="Registrar consumo">
               <Input label="Data" value={mealForm.date} onChangeText={(date) => setMealForm({ ...mealForm, date })} />
               <Text style={styles.label}>Item consumido</Text>
+              <View style={styles.selectorTabs}>
+                <TouchableOpacity
+                  style={[styles.selectorTab, foodMode === "popular" && styles.selectorTabActive]}
+                  onPress={() => setFoodMode("popular")}
+                >
+                  <Text style={[styles.selectorTabText, foodMode === "popular" && styles.selectorTabTextActive]}>
+                    Mais usados
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.selectorTab, foodMode === "all" && styles.selectorTabActive]}
+                  onPress={() => setFoodMode("all")}
+                >
+                  <Text style={[styles.selectorTabText, foodMode === "all" && styles.selectorTabTextActive]}>
+                    Todos itens
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {foodMode === "all" && (
+                <Input
+                  label="Buscar alimento"
+                  value={foodSearch}
+                  onChangeText={setFoodSearch}
+                  placeholder="Ex: arroz, frango, banana..."
+                />
+              )}
               <View style={styles.foodList}>
-                {state.foods.map((food) => (
+                {visibleFoods.map((food) => (
                   <TouchableOpacity
                     key={food.id}
                     style={[styles.foodPill, mealForm.foodId === food.id && styles.foodPillActive]}
@@ -365,6 +429,9 @@ export default function App() {
                   </TouchableOpacity>
                 ))}
               </View>
+              {foodMode === "all" && !foodSearch && (
+                <Text style={styles.muted}>Mostrando os primeiros 80 itens. Use a busca para encontrar outros alimentos.</Text>
+              )}
               <Input
                 label="Quantidade em gramas/ml"
                 keyboardType="numeric"
@@ -511,11 +578,11 @@ function MealItem({ meal }) {
   );
 }
 
-function ConsumptionCategoryItem({ item }) {
+function ConsumptionFoodItem({ item }) {
   return (
     <View style={styles.mealItem}>
       <View style={styles.mealText}>
-        <Text style={styles.mealTitle}>{item.category}</Text>
+        <Text style={styles.mealTitle}>{item.name}</Text>
         <Text style={styles.muted}>{item.grams}g/ml consumidos</Text>
       </View>
       <View style={styles.macroSummary}>
@@ -788,6 +855,31 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontWeight: "800"
+  },
+  selectorTabs: {
+    flexDirection: "row",
+    gap: 8
+  },
+  selectorTab: {
+    flex: 1,
+    borderColor: "#D8E2C6",
+    borderWidth: 1,
+    borderRadius: 14,
+    alignItems: "center",
+    paddingVertical: 11,
+    backgroundColor: "#F5F7EF"
+  },
+  selectorTabActive: {
+    backgroundColor: "#466B2D",
+    borderColor: "#466B2D"
+  },
+  selectorTabText: {
+    color: "#466B2D",
+    fontSize: 13,
+    fontWeight: "900"
+  },
+  selectorTabTextActive: {
+    color: "#FFFFFF"
   },
   foodList: {
     flexDirection: "row",
