@@ -74,7 +74,7 @@ const legacyActivityPresets = [
   },
   {
     id: "trabalho-sentado",
-    name: "Trabalho sentado",
+    name: "Trabalho no Computador",
     caloriesPerHour: 90
   },
   {
@@ -91,6 +91,26 @@ const legacyActivityPresets = [
     id: "trabalho-em-pe",
     name: "Trabalho em pé",
     caloriesPerHour: 140
+  },
+  {
+    id: "limpeza-de-casa",
+    name: "Limpeza de casa",
+    caloriesPerHour: 180
+  },
+  {
+    id: "deitar-com-forninho",
+    name: "Deitar com Forninho",
+    caloriesPerHour: 70
+  },
+  {
+    id: "corrida-leve",
+    name: "Corrida leve",
+    caloriesPerHour: 520
+  },
+  {
+    id: "bicicleta",
+    name: "Bicicleta",
+    caloriesPerHour: 300
   }
 ];
 
