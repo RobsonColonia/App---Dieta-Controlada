@@ -421,6 +421,10 @@
               </div>
               <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
               <button class="button" id="save-consumption">Salvar consumo</button>
+              <div>
+                <h2 style="font-size: 16px;">Consumos lançados hoje</h2>
+                <div id="meal-log"></div>
+              </div>
             </div>
           </section>
 
@@ -460,6 +464,7 @@
     const mealDate = document.getElementById("meal-date");
     const mealGrams = document.getElementById("meal-grams");
     const saveConsumption = document.getElementById("save-consumption");
+    const mealLog = document.getElementById("meal-log");
     const expenseDate = document.getElementById("expense-date");
     const expenseMinutes = document.getElementById("expense-minutes");
     const expenseOptions = document.getElementById("expense-options");
@@ -708,6 +713,16 @@
       consumoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.name}</div><div class="muted">${item.grams}g/ml consumidos</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div></div></div>`).join("");
     }
 
+    function renderMealLog() {
+      const selectedDate = mealDate.value || todayISO();
+      const meals = appData.meals.filter((item) => item.date === selectedDate);
+      if (meals.length === 0) {
+        mealLog.innerHTML = '<div class="muted">Nenhum consumo lançado nesta data.</div>';
+        return;
+      }
+      mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div></div></div>`).join("");
+    }
+
     function renderExpenses(period = currentPeriod) {
       gastoTitle.textContent = `Gastos de ${period}`;
       const data = periodExpenses(period);
@@ -723,6 +738,7 @@
       renderChart(currentPeriod);
       renderConsumption(currentPeriod);
       renderExpenses(currentPeriod);
+      renderMealLog();
     }
 
     tabs.forEach((tab) => {
@@ -760,10 +776,6 @@
       periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
       saldoTitle.textContent = "Saldo de hoje";
       renderAll();
-      tabs.forEach((item) => item.classList.remove("active"));
-      sections.forEach((section) => section.classList.add("hidden"));
-      document.querySelector('[data-tab="hoje"]').classList.add("active");
-      document.getElementById("hoje").classList.remove("hidden");
     });
 
     saveExpense.addEventListener("click", () => {

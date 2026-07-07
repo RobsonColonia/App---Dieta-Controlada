@@ -214,6 +214,7 @@ export default function App() {
   const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
   const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
+  const selectedDateMeals = state.meals.filter((meal) => meal.date === mealForm.date);
   const visibleFoods = useMemo(() => {
     if (foodMode === "popular") {
       return mostUsedFoodIds
@@ -287,7 +288,6 @@ export default function App() {
 
     setState((current) => ({ ...current, meals: [newMeal, ...current.meals] }));
     setMealForm((current) => ({ ...current, grams: "" }));
-    setActiveTab("dashboard");
   }
 
   function addExpense() {
@@ -441,6 +441,14 @@ export default function App() {
                 onChangeText={(grams) => setMealForm({ ...mealForm, grams })}
               />
               <Button label="Salvar consumo" onPress={addMeal} />
+              <View style={styles.inlineLog}>
+                <Text style={styles.cardTitle}>Consumos lançados hoje</Text>
+                {selectedDateMeals.length === 0 ? (
+                  <Text style={styles.muted}>Nenhum consumo lançado nesta data.</Text>
+                ) : (
+                  selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} />)
+                )}
+              </View>
             </Section>
           )}
 
@@ -882,6 +890,10 @@ const styles = StyleSheet.create({
   },
   selectorTabTextActive: {
     color: "#FFFFFF"
+  },
+  inlineLog: {
+    gap: 10,
+    marginTop: 8
   },
   foodList: {
     gap: 8
