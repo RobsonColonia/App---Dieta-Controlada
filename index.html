@@ -285,6 +285,17 @@
       white-space: nowrap;
     }
 
+    .log-summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .log-summary h2 {
+      font-size: 16px;
+    }
+
     .delete-button {
       border: 0;
       border-radius: 999px;
@@ -432,7 +443,14 @@
               <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
               <button class="button" id="save-consumption">Salvar consumo</button>
               <div>
-                <h2 id="meal-log-title" style="font-size: 16px;">Consumos lançados hoje</h2>
+                <div class="log-summary">
+                  <h2 id="meal-log-title">Consumos lançados hoje</h2>
+                  <div class="macro-summary" id="meal-log-total">
+                    <div>0 kcal</div>
+                    <div>0g pro</div>
+                    <div>0g carb</div>
+                  </div>
+                </div>
                 <div id="meal-log"></div>
               </div>
             </div>
@@ -454,7 +472,12 @@
               <div class="muted" id="expense-preview">Selecione uma atividade e informe o tempo.</div>
               <button class="button" id="save-expense">Salvar atividade</button>
               <div>
-                <h2 id="expense-log-title" style="font-size: 16px;">Gastos lançados hoje</h2>
+                <div class="log-summary">
+                  <h2 id="expense-log-title">Gastos lançados hoje</h2>
+                  <div class="macro-summary" id="expense-log-total">
+                    <div>0 kcal</div>
+                  </div>
+                </div>
                 <div id="expense-log"></div>
               </div>
             </div>
@@ -483,6 +506,7 @@
     const mealGrams = document.getElementById("meal-grams");
     const saveConsumption = document.getElementById("save-consumption");
     const mealLogTitle = document.getElementById("meal-log-title");
+    const mealLogTotal = document.getElementById("meal-log-total");
     const mealLog = document.getElementById("meal-log");
     const expenseDate = document.getElementById("expense-date");
     const expenseMinutes = document.getElementById("expense-minutes");
@@ -490,6 +514,7 @@
     const expensePreview = document.getElementById("expense-preview");
     const saveExpense = document.getElementById("save-expense");
     const expenseLogTitle = document.getElementById("expense-log-title");
+    const expenseLogTotal = document.getElementById("expense-log-total");
     const expenseLog = document.getElementById("expense-log");
     const timeUnitButtons = document.querySelectorAll("[data-time-unit]");
     const foodModeButtons = document.querySelectorAll("[data-food-mode]");
@@ -523,16 +548,6 @@
     } catch (error) {
       console.warn("Base completa de alimentos não carregou; usando base mínima.", error);
     }
-    const popularFoodIds = [
-      "arroz-tipo-1-cozido",
-      "feijao-carioca-cozido",
-      "frango-peito-sem-pele-grelhado",
-      "ovo-de-galinha-inteiro-cozido-10minutos",
-      "banana-prata-crua",
-      "pao-trigo-frances",
-      "batata-inglesa-cozida",
-      "carne-bovina-patinho-sem-gordura-grelhado"
-    ];
     const activityPresets = [
       { id: "caminhada", name: "Caminhada", caloriesPerHour: 240 },
       { id: "trabalho-sentado", name: "Trabalho sentado", caloriesPerHour: 90 },
@@ -547,7 +562,7 @@
     }
 
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
-    let selectedFoodId = popularFoodIds.find((id) => foods.some((food) => food.id === id)) || foods[0]?.id;
+    let selectedFoodId = foods[0]?.id;
     let selectedActivityId = activityPresets[0].id;
     let selectedTimeUnit = "minutes";
     let currentFoodMode = "popular";
@@ -594,15 +609,40 @@
       };
     }
 
+    function getMostUsedFoods() {
+      const usage = appData.meals.reduce((acc, meal) => {
+        if (meal.foodId) acc[meal.foodId] = (acc[meal.foodId] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(usage)
+        .map(([foodId, count]) => {
+          const food = foods.find((item) => item.id === foodId);
+          return food ? { ...food, usageCount: count } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.usageCount - a.usageCount || a.name.localeCompare(b.name, "pt-BR"))
+        .slice(0, 80);
+    }
+
     function renderFoodOptions(mode = currentFoodMode) {
       currentFoodMode = mode;
       const search = normalizeText(foodSearch.value.trim());
       const source = mode === "popular"
-        ? sortByName(popularFoodIds.map((id) => foods.find((food) => food.id === id)).filter(Boolean))
+        ? getMostUsedFoods()
         : sortByName(search ? foods.filter((food) => normalizeText(food.name).includes(search)) : foods).slice(0, search ? 120 : 80);
 
       if (!source.some((food) => food.id === selectedFoodId) && source[0]) {
         selectedFoodId = source[0].id;
+      }
+
+      if (source.length === 0) {
+        foodOptions.innerHTML = mode === "popular"
+          ? '<div class="muted">Nenhum item usado ainda. Entre em "Todos itens" para lançar o primeiro consumo.</div>'
+          : '<div class="muted">Nenhum alimento encontrado nessa busca.</div>';
+        foodSearchWrap.classList.toggle("hidden", mode !== "all");
+        foodHint.classList.add("hidden");
+        return;
       }
 
       foodOptions.innerHTML = source
@@ -751,7 +791,8 @@
         protein: round(acc.protein + (Number(item.protein) || 0)),
         carbs: round(acc.carbs + (Number(item.carbs) || 0))
       }), { calories: 0, protein: 0, carbs: 0 });
-      mealLogTitle.textContent = `Consumos lançados hoje - ${total.calories} kcal | ${total.protein}g pro | ${total.carbs}g carb`;
+      mealLogTitle.textContent = "Consumos lançados hoje";
+      mealLogTotal.innerHTML = `<div>${total.calories} kcal</div><div>${total.protein}g pro</div><div>${total.carbs}g carb</div>`;
       if (meals.length === 0) {
         mealLog.innerHTML = '<div class="muted">Nenhum consumo lançado nesta data.</div>';
         return;
@@ -762,6 +803,7 @@
           if (!confirm("Tem certeza que quer excluir este consumo?")) return;
           appData.meals = appData.meals.filter((meal) => meal.id !== button.dataset.deleteMeal);
           saveData();
+          renderFoodOptions(currentFoodMode);
           renderAll();
         });
       });
@@ -781,7 +823,8 @@
       const selectedDate = expenseDate.value || todayISO();
       const expenses = appData.expenses.filter((item) => item.date === selectedDate);
       const total = round(expenses.reduce((sum, item) => sum + (Number(item.calories) || 0), 0));
-      expenseLogTitle.textContent = `Gastos lançados hoje - ${total} kcal`;
+      expenseLogTitle.textContent = "Gastos lançados hoje";
+      expenseLogTotal.innerHTML = `<div>${total} kcal</div>`;
       if (expenses.length === 0) {
         expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
         return;
@@ -849,6 +892,7 @@
       currentPeriod = "hoje";
       periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
       saldoTitle.textContent = "Saldo de hoje";
+      renderFoodOptions(currentFoodMode);
       renderAll();
     });
 

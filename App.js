@@ -36,17 +36,6 @@ function sortByName(items) {
   return [...items].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
-const mostUsedFoodIds = [
-  "arroz-tipo-1-cozido",
-  "feijao-carioca-cozido",
-  "frango-peito-sem-pele-grelhado",
-  "ovo-de-galinha-inteiro-cozido-10minutos",
-  "banana-prata-crua",
-  "pao-trigo-frances",
-  "batata-inglesa-cozida",
-  "carne-bovina-patinho-sem-gordura-grelhado"
-];
-
 const legacyStarterFoods = [
   {
     id: "arroz",
@@ -234,11 +223,19 @@ export default function App() {
   );
   const visibleFoods = useMemo(() => {
     if (foodMode === "popular") {
-      return sortByName(
-        mostUsedFoodIds
-          .map((id) => state.foods.find((food) => food.id === id))
-          .filter(Boolean)
-      );
+      const usage = state.meals.reduce((acc, meal) => {
+        if (meal.foodId) acc[meal.foodId] = (acc[meal.foodId] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(usage)
+        .map(([foodId, count]) => {
+          const food = state.foods.find((item) => item.id === foodId);
+          return food ? { ...food, usageCount: count } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.usageCount - a.usageCount || a.name.localeCompare(b.name, "pt-BR"))
+        .slice(0, 80);
     }
 
     const search = normalizeText(foodSearch.trim());
@@ -467,7 +464,13 @@ export default function App() {
               )}
               <ScrollView style={styles.foodListScroll} nestedScrollEnabled>
                 <View style={styles.foodList}>
-                  {visibleFoods.map((food) => (
+                  {visibleFoods.length === 0 ? (
+                    <Text style={styles.muted}>
+                      {foodMode === "popular"
+                        ? "Nenhum item usado ainda. Entre em Todos itens para lançar o primeiro consumo."
+                        : "Nenhum alimento encontrado nessa busca."}
+                    </Text>
+                  ) : visibleFoods.map((food) => (
                     <TouchableOpacity
                       key={food.id}
                       style={[styles.foodPill, mealForm.foodId === food.id && styles.foodPillActive]}
@@ -491,10 +494,14 @@ export default function App() {
               />
               <Button label="Salvar consumo" onPress={addMeal} />
               <View style={styles.inlineLog}>
-                <Text style={styles.cardTitle}>
-                  Consumos lançados hoje - {selectedDateMealTotals.calories} kcal | {selectedDateMealTotals.protein}g
-                  pro | {selectedDateMealTotals.carbs}g carb
-                </Text>
+                <View style={styles.logSummary}>
+                  <Text style={styles.cardTitle}>Consumos lançados hoje</Text>
+                  <View style={styles.macroSummary}>
+                    <Text style={styles.macroSummaryText}>{selectedDateMealTotals.calories} kcal</Text>
+                    <Text style={styles.macroSummaryText}>{selectedDateMealTotals.protein}g pro</Text>
+                    <Text style={styles.macroSummaryText}>{selectedDateMealTotals.carbs}g carb</Text>
+                  </View>
+                </View>
                 {selectedDateMeals.length === 0 ? (
                   <Text style={styles.muted}>Nenhum consumo lançado nesta data.</Text>
                 ) : (
@@ -586,7 +593,12 @@ export default function App() {
               </Text>
               <Button label="Salvar atividade" onPress={addExpense} />
               <View style={styles.inlineLog}>
-                <Text style={styles.cardTitle}>Gastos lançados hoje - {selectedDateExpenseTotal} kcal</Text>
+                <View style={styles.logSummary}>
+                  <Text style={styles.cardTitle}>Gastos lançados hoje</Text>
+                  <View style={styles.macroSummary}>
+                    <Text style={styles.macroSummaryText}>{selectedDateExpenseTotal} kcal</Text>
+                  </View>
+                </View>
                 {selectedDateExpenses.length === 0 ? (
                   <Text style={styles.muted}>Nenhum gasto lançado nesta data.</Text>
                 ) : (
@@ -660,7 +672,7 @@ function MealItem({ meal, onDelete }) {
       <View>
         <Text style={styles.mealTitle}>{meal.foodName}</Text>
         <Text style={styles.muted}>
-          {meal.date} â€¢ {meal.grams}g/ml
+          {meal.date} • {meal.grams}g/ml
         </Text>
       </View>
       <View style={styles.itemActions}>
@@ -693,7 +705,7 @@ function ActivityItem({ activity, onDelete }) {
       <View>
         <Text style={styles.mealTitle}>{activity.description}</Text>
         <Text style={styles.muted}>
-          {activity.date} â€¢ {activity.minutes || 0} min
+          {activity.date} • {activity.minutes || 0} min
         </Text>
       </View>
       <View style={styles.itemActions}>
@@ -988,6 +1000,12 @@ const styles = StyleSheet.create({
   inlineLog: {
     gap: 10,
     marginTop: 8
+  },
+  logSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12
   },
   foodList: {
     gap: 8
