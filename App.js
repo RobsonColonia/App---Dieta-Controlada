@@ -121,7 +121,8 @@ export default function App() {
   const [expenseForm, setExpenseForm] = useState({
     date: todayISO(),
     activityId: activityPresets[0].id,
-    minutes: ""
+    time: "",
+    unit: "minutes"
   });
 
   useEffect(() => {
@@ -215,6 +216,7 @@ export default function App() {
   const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
   const selectedDateMeals = state.meals.filter((meal) => meal.date === mealForm.date);
+  const selectedDateExpenses = state.expenses.filter((expense) => expense.date === expenseForm.date);
   const visibleFoods = useMemo(() => {
     if (foodMode === "popular") {
       return mostUsedFoodIds
@@ -293,24 +295,24 @@ export default function App() {
   function addExpense() {
     const activity = activityPresets.find((item) => item.id === expenseForm.activityId);
 
-    if (!activity || !expenseForm.minutes) {
+    if (!activity || !expenseForm.time) {
       Alert.alert("Faltou algo", "Escolha uma atividade e informe o tempo.");
       return;
     }
 
-    const calories = round((Number(expenseForm.minutes) / 60) * activity.caloriesPerHour);
+    const minutes = expenseForm.unit === "hours" ? Number(expenseForm.time) * 60 : Number(expenseForm.time);
+    const calories = round((minutes / 60) * activity.caloriesPerHour);
     const newExpense = {
       id: `${Date.now()}`,
       date: expenseForm.date,
       activityId: activity.id,
       description: activity.name,
-      minutes: Number(expenseForm.minutes),
+      minutes,
       calories
     };
 
     setState((current) => ({ ...current, expenses: [newExpense, ...current.expenses] }));
-    setExpenseForm((current) => ({ ...current, minutes: "" }));
-    setActiveTab("dashboard");
+    setExpenseForm((current) => ({ ...current, time: "" }));
   }
 
   return (
@@ -505,16 +507,42 @@ export default function App() {
                   </TouchableOpacity>
                 ))}
               </View>
+              <View style={styles.selectorTabs}>
+                <TouchableOpacity
+                  style={[styles.selectorTab, expenseForm.unit === "minutes" && styles.selectorTabActive]}
+                  onPress={() => setExpenseForm({ ...expenseForm, unit: "minutes" })}
+                >
+                  <Text style={[styles.selectorTabText, expenseForm.unit === "minutes" && styles.selectorTabTextActive]}>
+                    Min
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.selectorTab, expenseForm.unit === "hours" && styles.selectorTabActive]}
+                  onPress={() => setExpenseForm({ ...expenseForm, unit: "hours" })}
+                >
+                  <Text style={[styles.selectorTabText, expenseForm.unit === "hours" && styles.selectorTabTextActive]}>
+                    Hora
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <Input
-                label="Tempo em minutos"
+                label="Tempo"
                 keyboardType="numeric"
-                value={expenseForm.minutes}
-                onChangeText={(minutes) => setExpenseForm({ ...expenseForm, minutes })}
+                value={expenseForm.time}
+                onChangeText={(time) => setExpenseForm({ ...expenseForm, time })}
               />
               <Text style={styles.muted}>
                 O app calcula as calorias usando uma média pré-programada por hora para cada atividade.
               </Text>
               <Button label="Salvar atividade" onPress={addExpense} />
+              <View style={styles.inlineLog}>
+                <Text style={styles.cardTitle}>Gastos lançados hoje</Text>
+                {selectedDateExpenses.length === 0 ? (
+                  <Text style={styles.muted}>Nenhum gasto lançado nesta data.</Text>
+                ) : (
+                  selectedDateExpenses.map((expense) => <ActivityItem key={expense.id} activity={expense} />)
+                )}
+              </View>
             </Section>
           )}
         </ScrollView>

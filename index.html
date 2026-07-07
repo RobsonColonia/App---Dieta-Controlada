@@ -436,9 +436,17 @@
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Atividade</div>
                 <div class="pill-row" id="expense-options"></div>
               </div>
-              <label>Tempo em minutos <input id="expense-minutes" inputmode="decimal" placeholder="Ex: 45" /></label>
+              <div class="selector-tabs">
+                <button class="selector-tab active" data-time-unit="minutes">Min</button>
+                <button class="selector-tab" data-time-unit="hours">Hora</button>
+              </div>
+              <label>Tempo <input id="expense-minutes" inputmode="decimal" placeholder="Ex: 45" /></label>
               <div class="muted" id="expense-preview">Selecione uma atividade e informe o tempo.</div>
               <button class="button" id="save-expense">Salvar atividade</button>
+              <div>
+                <h2 style="font-size: 16px;">Gastos lançados hoje</h2>
+                <div id="expense-log"></div>
+              </div>
             </div>
           </section>
 
@@ -470,6 +478,8 @@
     const expenseOptions = document.getElementById("expense-options");
     const expensePreview = document.getElementById("expense-preview");
     const saveExpense = document.getElementById("save-expense");
+    const expenseLog = document.getElementById("expense-log");
+    const timeUnitButtons = document.querySelectorAll("[data-time-unit]");
     const foodModeButtons = document.querySelectorAll("[data-food-mode]");
     const foodOptions = document.getElementById("food-options");
     const foodSearchWrap = document.getElementById("food-search-wrap");
@@ -521,6 +531,7 @@
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
     let selectedFoodId = popularFoodIds.find((id) => foods.some((food) => food.id === id)) || foods[0]?.id;
     let selectedActivityId = activityPresets[0].id;
+    let selectedTimeUnit = "minutes";
     let currentFoodMode = "popular";
     let currentPeriod = "hoje";
 
@@ -607,10 +618,11 @@
 
     function updateExpensePreview() {
       const activity = activityPresets.find((item) => item.id === selectedActivityId);
-      const minutes = Number(String(expenseMinutes.value).replace(",", ".")) || 0;
+      const rawTime = Number(String(expenseMinutes.value).replace(",", ".")) || 0;
+      const minutes = selectedTimeUnit === "hours" ? rawTime * 60 : rawTime;
       const calories = activity && minutes ? round((minutes / 60) * activity.caloriesPerHour) : 0;
       expensePreview.textContent = activity && minutes
-        ? `${activity.name}: ${activity.caloriesPerHour} kcal/h. Com ${minutes} min, gasto estimado de ${calories} kcal.`
+        ? `${activity.name}: ${activity.caloriesPerHour} kcal/h. Gasto estimado de ${calories} kcal.`
         : "Selecione uma atividade e informe o tempo.";
     }
 
@@ -733,12 +745,23 @@
       gastoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min acumulados</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div></div></div>`).join("");
     }
 
+    function renderExpenseLog() {
+      const selectedDate = expenseDate.value || todayISO();
+      const expenses = appData.expenses.filter((item) => item.date === selectedDate);
+      if (expenses.length === 0) {
+        expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
+        return;
+      }
+      expenseLog.innerHTML = expenses.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div></div></div>`).join("");
+    }
+
     function renderAll() {
       renderTotals(currentPeriod);
       renderChart(currentPeriod);
       renderConsumption(currentPeriod);
       renderExpenses(currentPeriod);
       renderMealLog();
+      renderExpenseLog();
     }
 
     tabs.forEach((tab) => {
@@ -760,6 +783,15 @@
 
     foodSearch.addEventListener("input", () => renderFoodOptions("all"));
     expenseMinutes.addEventListener("input", updateExpensePreview);
+    timeUnitButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        timeUnitButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        selectedTimeUnit = button.dataset.timeUnit;
+        expenseMinutes.placeholder = selectedTimeUnit === "hours" ? "Ex: 1.5" : "Ex: 45";
+        updateExpensePreview();
+      });
+    });
 
     saveConsumption.addEventListener("click", () => {
       const food = foods.find((item) => item.id === selectedFoodId);
@@ -780,7 +812,8 @@
 
     saveExpense.addEventListener("click", () => {
       const activity = activityPresets.find((item) => item.id === selectedActivityId);
-      const minutes = Number(String(expenseMinutes.value).replace(",", "."));
+      const rawTime = Number(String(expenseMinutes.value).replace(",", "."));
+      const minutes = selectedTimeUnit === "hours" ? rawTime * 60 : rawTime;
       if (!activity || !minutes || minutes <= 0) {
         alert("Escolha uma atividade e informe o tempo.");
         return;
@@ -801,10 +834,6 @@
       periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
       saldoTitle.textContent = "Saldo de hoje";
       renderAll();
-      tabs.forEach((item) => item.classList.remove("active"));
-      sections.forEach((section) => section.classList.add("hidden"));
-      document.querySelector('[data-tab="hoje"]').classList.add("active");
-      document.getElementById("hoje").classList.remove("hidden");
     });
 
     periodButtons.forEach((button) => {
