@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Dieta Controlada",
+    "slug": "dieta-controlada",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#F5F7EF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.robsoncolonia.dietacontrolada"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
