@@ -416,19 +416,21 @@ export default function App() {
                   placeholder="Ex: arroz, frango, banana..."
                 />
               )}
-              <View style={styles.foodList}>
-                {visibleFoods.map((food) => (
-                  <TouchableOpacity
-                    key={food.id}
-                    style={[styles.foodPill, mealForm.foodId === food.id && styles.foodPillActive]}
-                    onPress={() => setMealForm({ ...mealForm, foodId: food.id })}
-                  >
-                    <Text style={[styles.foodPillText, mealForm.foodId === food.id && styles.foodPillTextActive]}>
-                      {food.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <ScrollView style={styles.foodListScroll} nestedScrollEnabled>
+                <View style={styles.foodList}>
+                  {visibleFoods.map((food) => (
+                    <TouchableOpacity
+                      key={food.id}
+                      style={[styles.foodPill, mealForm.foodId === food.id && styles.foodPillActive]}
+                      onPress={() => setMealForm({ ...mealForm, foodId: food.id })}
+                    >
+                      <Text style={[styles.foodPillText, mealForm.foodId === food.id && styles.foodPillTextActive]}>
+                        {food.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
               {foodMode === "all" && !foodSearch && (
                 <Text style={styles.muted}>Mostrando os primeiros 80 itens. Use a busca para encontrar outros alimentos.</Text>
               )}
@@ -883,6 +885,9 @@ const styles = StyleSheet.create({
   },
   foodList: {
     gap: 8
+  },
+  foodListScroll: {
+    maxHeight: 260
   },
   foodPill: {
     borderColor: "#D8E2C6",

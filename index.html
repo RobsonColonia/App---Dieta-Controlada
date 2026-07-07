@@ -290,6 +290,12 @@
       gap: 8px;
     }
 
+    #food-options {
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
     .selector-tabs {
       display: flex;
       gap: 8px;
@@ -372,19 +378,19 @@
             <div class="grid" style="margin-top: 14px;">
               <div class="metric">
                 <div class="metric-label">Consumido</div>
-                <div class="metric-value">2.100 kcal</div>
+                <div class="metric-value" id="metric-consumed">0 kcal</div>
               </div>
               <div class="metric">
                 <div class="metric-label">Gasto</div>
-                <div class="metric-value">2.500 kcal</div>
+                <div class="metric-value" id="metric-spent">0 kcal</div>
               </div>
               <div class="metric">
                 <div class="metric-label">Proteínas</div>
-                <div class="metric-value">135 g</div>
+                <div class="metric-value" id="metric-protein">0 g</div>
               </div>
               <div class="metric">
                 <div class="metric-label">Carboidratos</div>
-                <div class="metric-value">220 g</div>
+                <div class="metric-value" id="metric-carbs">0 g</div>
               </div>
             </div>
 
@@ -402,7 +408,7 @@
           <section id="refeicao" class="hidden">
             <div class="card">
               <h2>Registrar consumo</h2>
-              <label>Data <input value="2026-07-07" /></label>
+              <label>Data <input id="meal-date" /></label>
               <div>
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item consumido</div>
                 <div class="selector-tabs">
@@ -413,53 +419,31 @@
                 <div class="pill-row" id="food-options"></div>
                 <div class="muted hidden" id="food-hint">Mostrando itens iniciais. Use a busca para encontrar outros alimentos.</div>
               </div>
-              <label>Quantidade em gramas/ml <input value="150" /></label>
-              <button class="button">Salvar consumo</button>
+              <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
+              <button class="button" id="save-consumption">Salvar consumo</button>
             </div>
           </section>
 
           <section id="gasto" class="hidden">
             <div class="card">
-              <h2>Registrar gasto diário</h2>
-              <label>Data <input value="2026-07-07" /></label>
+              <h2>Registrar gasto di?rio</h2>
+              <label>Data <input id="expense-date" /></label>
               <div>
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Atividade</div>
-                <div class="pill-row">
-                  <span class="pill active">Caminhada</span>
-                  <span class="pill">Trabalho sentado</span>
-                  <span class="pill">Academia</span>
-                  <span class="pill">Sono</span>
-                  <span class="pill">Trabalho em pé</span>
-                </div>
+                <div class="pill-row" id="expense-options"></div>
               </div>
-              <label>Tempo em minutos <input value="45" /></label>
-              <div class="muted">Caminhada: 240 kcal/h. Com 45 min, o gasto estimado será 180 kcal.</div>
-              <button class="button">Salvar atividade</button>
-            </div>
-
-            <div class="card" style="margin-top: 14px;">
-              <h2>Atividades cadastradas hoje</h2>
-              <div class="meal">
-                <div>
-                  <div class="meal-name">Sono</div>
-                  <div class="muted">480 min</div>
-                </div>
-                <div class="meal-kcal">480 kcal</div>
-              </div>
-              <div class="meal">
-                <div>
-                  <div class="meal-name">Trabalho sentado</div>
-                  <div class="muted">480 min</div>
-                </div>
-                <div class="meal-kcal">720 kcal</div>
-              </div>
+              <label>Tempo em minutos <input id="expense-minutes" inputmode="decimal" placeholder="Ex: 45" /></label>
+              <div class="muted" id="expense-preview">Selecione uma atividade e informe o tempo.</div>
+              <button class="button" id="save-expense">Salvar atividade</button>
             </div>
           </section>
 
         </main>
   </div>
 
-  <script>
+  <script type="module">
+    import { foods } from "./src/data/foods.js";
+
     const tabs = document.querySelectorAll(".tab");
     const sections = document.querySelectorAll("main > section");
     const periodButtons = document.querySelectorAll(".period-button");
@@ -469,72 +453,166 @@
     const consumoResumo = document.getElementById("consumo-resumo");
     const gastoTitle = document.getElementById("gasto-title");
     const gastoResumo = document.getElementById("gasto-resumo");
+    const balanceEl = document.querySelector(".balance");
+    const balanceHintEl = document.querySelector(".hero .muted");
+    const metricConsumed = document.getElementById("metric-consumed");
+    const metricSpent = document.getElementById("metric-spent");
+    const metricProtein = document.getElementById("metric-protein");
+    const metricCarbs = document.getElementById("metric-carbs");
+    const mealDate = document.getElementById("meal-date");
+    const mealGrams = document.getElementById("meal-grams");
+    const saveConsumption = document.getElementById("save-consumption");
+    const expenseDate = document.getElementById("expense-date");
+    const expenseMinutes = document.getElementById("expense-minutes");
+    const expenseOptions = document.getElementById("expense-options");
+    const expensePreview = document.getElementById("expense-preview");
+    const saveExpense = document.getElementById("save-expense");
     const foodModeButtons = document.querySelectorAll("[data-food-mode]");
     const foodOptions = document.getElementById("food-options");
     const foodSearchWrap = document.getElementById("food-search-wrap");
     const foodSearch = document.getElementById("food-search");
     const foodHint = document.getElementById("food-hint");
+
+    const storageKey = "dieta-controlada-web:v1";
     const formatSigned = (value) => value > 0 ? `+${value}` : `${value}`;
     const normalizeText = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    const popularFoods = ["Arroz", "Feijão", "Frango", "Ovo", "Banana", "Pão francês", "Batata", "Patinho"];
-    const allFoods = [
-      "Arroz integral cozido",
-      "Arroz tipo 1 cozido",
-      "Feijão carioca cozido",
-      "Feijão preto cozido",
-      "Frango peito grelhado",
-      "Ovo cozido",
-      "Banana prata",
-      "Pão francês",
-      "Batata inglesa cozida",
-      "Carne patinho grelhado",
-      "Leite integral",
-      "Aveia em flocos",
-      "Macarrão cozido",
-      "Maçã",
-      "Mamão",
-      "Queijo minas"
+    const round = (value) => Math.round(value * 10) / 10;
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    const popularFoodIds = [
+      "arroz-tipo-1-cozido",
+      "feijao-carioca-cozido",
+      "frango-peito-sem-pele-grelhado",
+      "ovo-de-galinha-inteiro-cozido-10minutos",
+      "banana-prata-crua",
+      "pao-trigo-frances",
+      "batata-inglesa-cozida",
+      "carne-bovina-patinho-sem-gordura-grelhado"
+    ];
+    const activityPresets = [
+      { id: "caminhada", name: "Caminhada", caloriesPerHour: 240 },
+      { id: "trabalho-sentado", name: "Trabalho sentado", caloriesPerHour: 90 },
+      { id: "academia", name: "Academia", caloriesPerHour: 420 },
+      { id: "sono", name: "Sono", caloriesPerHour: 60 },
+      { id: "trabalho-em-pe", name: "Trabalho em pé", caloriesPerHour: 140 }
     ];
 
-    function renderFoodOptions(mode = "popular") {
+    let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
+    let selectedFoodId = popularFoodIds.find((id) => foods.some((food) => food.id === id)) || foods[0]?.id;
+    let selectedActivityId = activityPresets[0].id;
+    let currentFoodMode = "popular";
+    let currentPeriod = "hoje";
+
+    mealDate.value = todayISO();
+    expenseDate.value = todayISO();
+
+    function saveData() {
+      localStorage.setItem(storageKey, JSON.stringify(appData));
+    }
+
+    function periodStart(period) {
+      const date = new Date();
+      if (period === "hoje") return todayISO();
+      if (period === "?ltimos 7 dias") {
+        date.setDate(date.getDate() - 6);
+        return date.toISOString().slice(0, 10);
+      }
+      if (period === "semana") {
+        const day = date.getDay();
+        const daysSinceMonday = day === 0 ? 6 : day - 1;
+        date.setDate(date.getDate() - daysSinceMonday);
+        return date.toISOString().slice(0, 10);
+      }
+      if (period === "m?s") {
+        date.setDate(1);
+        return date.toISOString().slice(0, 10);
+      }
+      return "";
+    }
+
+    function inPeriod(item, period) {
+      const start = periodStart(period);
+      return !start || item.date >= start;
+    }
+
+    function calculateNutrition(food, grams) {
+      const factor = grams / 100;
+      return {
+        calories: round((food.caloriesPer100g || 0) * factor),
+        protein: round((food.proteinPer100g || 0) * factor),
+        carbs: round((food.carbsPer100g || 0) * factor)
+      };
+    }
+
+    function renderFoodOptions(mode = currentFoodMode) {
+      currentFoodMode = mode;
       const search = normalizeText(foodSearch.value.trim());
       const source = mode === "popular"
-        ? popularFoods
-        : allFoods.filter((item) => !search || normalizeText(item).includes(search));
+        ? popularFoodIds.map((id) => foods.find((food) => food.id === id)).filter(Boolean)
+        : (search ? foods.filter((food) => normalizeText(food.name).includes(search)) : foods).slice(0, search ? 120 : 80);
+
+      if (!source.some((food) => food.id === selectedFoodId) && source[0]) {
+        selectedFoodId = source[0].id;
+      }
 
       foodOptions.innerHTML = source
-        .map((item, index) => `<button type="button" class="pill ${index === 0 ? "active" : ""}">${item}</button>`)
+        .map((item) => `<button type="button" data-food-id="${item.id}" class="pill ${item.id === selectedFoodId ? "active" : ""}">${item.name}</button>`)
         .join("");
       foodSearchWrap.classList.toggle("hidden", mode !== "all");
       foodHint.classList.toggle("hidden", mode !== "all" || Boolean(search));
       foodOptions.querySelectorAll(".pill").forEach((item) => {
         item.addEventListener("click", () => {
+          selectedFoodId = item.dataset.foodId;
           foodOptions.querySelectorAll(".pill").forEach((pill) => pill.classList.remove("active"));
           item.classList.add("active");
         });
       });
     }
-    const fullSeries = [];
 
-    function seriesForPeriod(period) {
-      if (period === "hoje") return fullSeries.slice(-1);
-      if (period === "semana") {
-        const lastMondayIndex = fullSeries.map((item) => item.weekday).lastIndexOf(1);
-        return fullSeries.slice(lastMondayIndex);
-      }
-      if (period === "últimos 7 dias") return fullSeries.slice(-7);
-      if (period === "mês") return fullSeries;
-      return fullSeries;
+    function renderExpenseOptions() {
+      expenseOptions.innerHTML = activityPresets
+        .map((item) => `<button type="button" data-activity-id="${item.id}" class="pill ${item.id === selectedActivityId ? "active" : ""}">${item.name}</button>`)
+        .join("");
+      expenseOptions.querySelectorAll(".pill").forEach((item) => {
+        item.addEventListener("click", () => {
+          selectedActivityId = item.dataset.activityId;
+          expenseOptions.querySelectorAll(".pill").forEach((pill) => pill.classList.remove("active"));
+          item.classList.add("active");
+          updateExpensePreview();
+        });
+      });
+      updateExpensePreview();
     }
 
-    function renderChart(period = "hoje") {
+    function updateExpensePreview() {
+      const activity = activityPresets.find((item) => item.id === selectedActivityId);
+      const minutes = Number(String(expenseMinutes.value).replace(",", ".")) || 0;
+      const calories = activity && minutes ? round((minutes / 60) * activity.caloriesPerHour) : 0;
+      expensePreview.textContent = activity && minutes
+        ? `${activity.name}: ${activity.caloriesPerHour} kcal/h. Com ${minutes} min, gasto estimado de ${calories} kcal.`
+        : "Selecione uma atividade e informe o tempo.";
+    }
+
+    function seriesForPeriod(period) {
+      const daily = {};
+      appData.meals.filter((item) => inPeriod(item, period)).forEach((meal) => {
+        daily[meal.date] = daily[meal.date] || 0;
+        daily[meal.date] += meal.calories;
+      });
+      appData.expenses.filter((item) => inPeriod(item, period)).forEach((expense) => {
+        daily[expense.date] = daily[expense.date] || 0;
+        daily[expense.date] -= expense.calories;
+      });
+      return Object.keys(daily).sort().map((date) => ({ date: date.slice(5), daily: round(daily[date]) }));
+    }
+
+    function renderChart(period = currentPeriod) {
       let running = 0;
       const data = seriesForPeriod(period).map((item) => {
-        running += item.daily;
+        running = round(running + item.daily);
         return { ...item, cumulative: running };
       });
       if (data.length === 0) {
-        chart.innerHTML = '<div class="muted">Registre consumo e gasto para gerar o gráfico.</div>';
+        chart.innerHTML = '<div class="muted">Registre consumo e gasto para gerar o gr?fico.</div>';
         return;
       }
       const values = data.flatMap((item) => [item.daily, item.cumulative, 0]);
@@ -551,95 +629,83 @@
         y: yFromValue(item.cumulative),
         value: item.cumulative
       }));
-      const segments = points
-        .slice(1)
-        .map((point, index) => {
-          const previous = points[index];
-          const color = point.value > previous.value ? "#ff6b6b" : "#466b2d";
-          return `<line x1="${previous.x}" y1="${previous.y}" x2="${point.x}" y2="${point.y}" stroke="${color}" stroke-width="3" stroke-linecap="round"></line>`;
-        })
-        .join("");
-      const circles = data
-        .map((item, index) => {
-          const cx = points[index].x;
-          const cy = points[index].y;
-          const fill = item.cumulative > 0 ? "#ff6b6b" : "#466b2d";
-          return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="${fill}"></circle>`;
-        })
-        .join("");
-      const bars = data
-        .map((item) => {
-          const height = Math.max(8, Math.abs(item.daily) / range * barAreaHeight);
-          const positive = item.daily > 0;
-          return `
-            <div class="chart-col">
-              <div class="chart-value ${positive ? "positive" : ""}">${formatSigned(item.daily)}</div>
-              <div class="chart-bar ${positive ? "positive" : ""}" style="height: ${height}px;"></div>
-              <div class="chart-date">${item.date}</div>
-            </div>
-          `;
-        })
-        .join("");
+      const segments = points.slice(1).map((point, index) => {
+        const previous = points[index];
+        const color = point.value > previous.value ? "#ff6b6b" : "#466b2d";
+        return `<line x1="${previous.x}" y1="${previous.y}" x2="${point.x}" y2="${point.y}" stroke="${color}" stroke-width="3" stroke-linecap="round"></line>`;
+      }).join("");
+      const circles = data.map((item, index) => {
+        const fill = item.cumulative > 0 ? "#ff6b6b" : "#466b2d";
+        return `<circle cx="${points[index].x}" cy="${points[index].y}" r="3.5" fill="${fill}"></circle>`;
+      }).join("");
+      const bars = data.map((item) => {
+        const height = Math.max(8, Math.abs(item.daily) / range * barAreaHeight);
+        const positive = item.daily > 0;
+        return `<div class="chart-col"><div class="chart-value ${positive ? "positive" : ""}">${formatSigned(item.daily)}</div><div class="chart-bar ${positive ? "positive" : ""}" style="height: ${height}px;"></div><div class="chart-date">${item.date}</div></div>`;
+      }).join("");
 
-      chart.innerHTML = `
-        <svg class="chart-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none">
-          <line x1="0" y1="${yFromValue(0)}" x2="${svgWidth}" y2="${yFromValue(0)}" stroke="#e2e9d6" stroke-width="1"></line>
-          ${segments}
-          ${circles}
-        </svg>
-        ${bars}
-      `;
+      chart.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none"><line x1="0" y1="${yFromValue(0)}" x2="${svgWidth}" y2="${yFromValue(0)}" stroke="#e2e9d6" stroke-width="1"></line>${segments}${circles}</svg>${bars}`;
     }
 
-    const sampleConsumption = [];
+    function periodMeals(period = currentPeriod) {
+      return appData.meals.filter((item) => inPeriod(item, period));
+    }
 
-    function renderConsumption(period = "hoje") {
+    function periodExpenses(period = currentPeriod) {
+      return appData.expenses.filter((item) => inPeriod(item, period));
+    }
+
+    function renderTotals(period = currentPeriod) {
+      const meals = periodMeals(period);
+      const expenses = periodExpenses(period);
+      const consumed = round(meals.reduce((sum, item) => sum + item.calories, 0));
+      const spent = round(expenses.reduce((sum, item) => sum + item.calories, 0));
+      const protein = round(meals.reduce((sum, item) => sum + item.protein, 0));
+      const carbs = round(meals.reduce((sum, item) => sum + item.carbs, 0));
+      const balance = round(consumed - spent);
+
+      balanceEl.textContent = `${formatSigned(balance)} kcal`;
+      balanceEl.style.color = balance > 0 ? "#ff6b6b" : balance < 0 ? "#9fe870" : "#ffffff";
+      balanceHintEl.textContent = balance > 0 ? "Super?vit cal?rico" : balance < 0 ? "D?ficit cal?rico" : "Registre consumo e gasto para acompanhar seu saldo.";
+      metricConsumed.textContent = `${consumed} kcal`;
+      metricSpent.textContent = `${spent} kcal`;
+      metricProtein.textContent = `${protein} g`;
+      metricCarbs.textContent = `${carbs} g`;
+    }
+
+    function renderConsumption(period = currentPeriod) {
       consumoTitle.textContent = `Consumo de ${period}`;
-      const data = sampleConsumption.filter((item) => item.period === period);
+      const grouped = {};
+      periodMeals(period).forEach((meal) => {
+        grouped[meal.foodId] = grouped[meal.foodId] || { name: meal.foodName, grams: 0, calories: 0, protein: 0, carbs: 0 };
+        grouped[meal.foodId].grams += meal.grams;
+        grouped[meal.foodId].calories += meal.calories;
+        grouped[meal.foodId].protein += meal.protein;
+        grouped[meal.foodId].carbs += meal.carbs;
+      });
+      const data = Object.values(grouped).map((item) => ({ ...item, grams: round(item.grams), calories: round(item.calories), protein: round(item.protein), carbs: round(item.carbs) }));
       if (data.length === 0) {
-        consumoResumo.innerHTML = '<div class="muted">Nenhum consumo registrado neste período.</div>';
+        consumoResumo.innerHTML = '<div class="muted">Nenhum consumo registrado neste per?odo.</div>';
         return;
       }
-      consumoResumo.innerHTML = data
-        .map((item) => `
-          <div class="meal">
-            <div>
-              <div class="meal-name">${item.name}</div>
-              <div class="muted">${item.grams}g/ml consumidos</div>
-            </div>
-            <div class="macro-summary">
-              <div>${item.calories} kcal</div>
-              <div>${item.protein}g pro</div>
-              <div>${item.carbs}g carb</div>
-            </div>
-          </div>
-        `)
-        .join("");
+      consumoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.name}</div><div class="muted">${item.grams}g/ml consumidos</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div></div></div>`).join("");
     }
 
-    const sampleExpenses = [];
-
-    function renderExpenses(period = "hoje") {
+    function renderExpenses(period = currentPeriod) {
       gastoTitle.textContent = `Gastos de ${period}`;
-      const data = sampleExpenses.filter((item) => item.period === period);
+      const data = periodExpenses(period);
       if (data.length === 0) {
-        gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste período.</div>';
+        gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste per?odo.</div>';
         return;
       }
-      gastoResumo.innerHTML = data
-        .map((item) => `
-          <div class="meal">
-            <div>
-              <div class="meal-name">${item.activity}</div>
-              <div class="muted">${item.minutes} min acumulados</div>
-            </div>
-            <div class="macro-summary">
-              <div>${item.calories} kcal</div>
-              <div>${Math.round((item.minutes / 60) * 10) / 10}h total</div>
-            </div>
-          </div>
-        `)
-        .join("");
+      gastoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min acumulados</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div></div></div>`).join("");
+    }
+
+    function renderAll() {
+      renderTotals(currentPeriod);
+      renderChart(currentPeriod);
+      renderConsumption(currentPeriod);
+      renderExpenses(currentPeriod);
     }
 
     tabs.forEach((tab) => {
@@ -660,22 +726,71 @@
     });
 
     foodSearch.addEventListener("input", () => renderFoodOptions("all"));
+    expenseMinutes.addEventListener("input", updateExpensePreview);
+
+    saveConsumption.addEventListener("click", () => {
+      const food = foods.find((item) => item.id === selectedFoodId);
+      const grams = Number(String(mealGrams.value).replace(",", "."));
+      if (!food || !grams || grams <= 0) {
+        alert("Escolha um alimento e informe a quantidade.");
+        return;
+      }
+      const nutrition = calculateNutrition(food, grams);
+      appData.meals.unshift({ id: `${Date.now()}`, date: mealDate.value || todayISO(), foodId: food.id, foodName: food.name, grams, ...nutrition });
+      mealGrams.value = "";
+      saveData();
+      currentPeriod = "hoje";
+      periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
+      saldoTitle.textContent = "Saldo de hoje";
+      renderAll();
+      tabs.forEach((item) => item.classList.remove("active"));
+      sections.forEach((section) => section.classList.add("hidden"));
+      document.querySelector('[data-tab="hoje"]').classList.add("active");
+      document.getElementById("hoje").classList.remove("hidden");
+    });
+
+    saveExpense.addEventListener("click", () => {
+      const activity = activityPresets.find((item) => item.id === selectedActivityId);
+      const minutes = Number(String(expenseMinutes.value).replace(",", "."));
+      if (!activity || !minutes || minutes <= 0) {
+        alert("Escolha uma atividade e informe o tempo.");
+        return;
+      }
+      const calories = round((minutes / 60) * activity.caloriesPerHour);
+      appData.expenses.unshift({
+        id: `${Date.now()}`,
+        date: expenseDate.value || todayISO(),
+        activityId: activity.id,
+        activity: activity.name,
+        minutes,
+        calories
+      });
+      expenseMinutes.value = "";
+      updateExpensePreview();
+      saveData();
+      currentPeriod = "hoje";
+      periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
+      saldoTitle.textContent = "Saldo de hoje";
+      renderAll();
+      tabs.forEach((item) => item.classList.remove("active"));
+      sections.forEach((section) => section.classList.add("hidden"));
+      document.querySelector('[data-tab="hoje"]').classList.add("active");
+      document.getElementById("hoje").classList.remove("hidden");
+    });
 
     periodButtons.forEach((button) => {
       button.addEventListener("click", () => {
         periodButtons.forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
-        saldoTitle.textContent = `Saldo de ${button.dataset.period}`;
-        renderChart(button.dataset.period);
-        renderConsumption(button.dataset.period);
-        renderExpenses(button.dataset.period);
+        currentPeriod = button.dataset.period;
+        saldoTitle.textContent = `Saldo de ${currentPeriod}`;
+        renderAll();
       });
     });
 
-    renderChart("hoje");
-    renderConsumption("hoje");
-    renderExpenses("hoje");
     renderFoodOptions("popular");
+    renderExpenseOptions();
+    renderAll();
   </script>
 </body>
 </html>
