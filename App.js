@@ -315,6 +315,36 @@ export default function App() {
     setExpenseForm((current) => ({ ...current, time: "" }));
   }
 
+  function deleteMeal(id) {
+    Alert.alert("Excluir consumo", "Tem certeza que quer excluir este consumo?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: () =>
+          setState((current) => ({
+            ...current,
+            meals: current.meals.filter((meal) => meal.id !== id)
+          }))
+      }
+    ]);
+  }
+
+  function deleteExpense(id) {
+    Alert.alert("Excluir gasto", "Tem certeza que quer excluir este gasto?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: () =>
+          setState((current) => ({
+            ...current,
+            expenses: current.expenses.filter((expense) => expense.id !== id)
+          }))
+      }
+    ]);
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="dark" />
@@ -448,7 +478,7 @@ export default function App() {
                 {selectedDateMeals.length === 0 ? (
                   <Text style={styles.muted}>Nenhum consumo lançado nesta data.</Text>
                 ) : (
-                  selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} />)
+                  selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} onDelete={() => deleteMeal(meal.id)} />)
                 )}
               </View>
             </Section>
@@ -540,7 +570,9 @@ export default function App() {
                 {selectedDateExpenses.length === 0 ? (
                   <Text style={styles.muted}>Nenhum gasto lançado nesta data.</Text>
                 ) : (
-                  selectedDateExpenses.map((expense) => <ActivityItem key={expense.id} activity={expense} />)
+                  selectedDateExpenses.map((expense) => (
+                    <ActivityItem key={expense.id} activity={expense} onDelete={() => deleteExpense(expense.id)} />
+                  ))
                 )}
               </View>
             </Section>
@@ -602,7 +634,7 @@ function Button({ label, onPress }) {
   );
 }
 
-function MealItem({ meal }) {
+function MealItem({ meal, onDelete }) {
   return (
     <View style={styles.mealItem}>
       <View>
@@ -611,7 +643,10 @@ function MealItem({ meal }) {
           {meal.date} • {meal.grams}g/ml
         </Text>
       </View>
-      <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+      <View style={styles.itemActions}>
+        <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+        {onDelete && <DeleteButton onPress={onDelete} />}
+      </View>
     </View>
   );
 }
@@ -632,7 +667,7 @@ function ConsumptionFoodItem({ item }) {
   );
 }
 
-function ActivityItem({ activity }) {
+function ActivityItem({ activity, onDelete }) {
   return (
     <View style={styles.mealItem}>
       <View>
@@ -641,8 +676,19 @@ function ActivityItem({ activity }) {
           {activity.date} • {activity.minutes || 0} min
         </Text>
       </View>
-      <Text style={styles.mealCalories}>{activity.calories} kcal</Text>
+      <View style={styles.itemActions}>
+        <Text style={styles.mealCalories}>{activity.calories} kcal</Text>
+        {onDelete && <DeleteButton onPress={onDelete} />}
+      </View>
     </View>
+  );
+}
+
+function DeleteButton({ onPress }) {
+  return (
+    <TouchableOpacity style={styles.deleteButton} onPress={onPress}>
+      <Text style={styles.deleteButtonText}>Excluir</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -966,6 +1012,21 @@ const styles = StyleSheet.create({
   },
   mealCalories: {
     color: "#466B2D",
+    fontWeight: "900"
+  },
+  itemActions: {
+    alignItems: "flex-end",
+    gap: 6
+  },
+  deleteButton: {
+    backgroundColor: "#FFE8E8",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 7
+  },
+  deleteButtonText: {
+    color: "#C03939",
+    fontSize: 12,
     fontWeight: "900"
   },
   macroSummary: {

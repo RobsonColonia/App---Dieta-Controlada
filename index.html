@@ -285,6 +285,16 @@
       white-space: nowrap;
     }
 
+    .delete-button {
+      border: 0;
+      border-radius: 999px;
+      background: #ffe8e8;
+      color: #c03939;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
     .pill-row {
       display: grid;
       gap: 8px;
@@ -732,7 +742,15 @@
         mealLog.innerHTML = '<div class="muted">Nenhum consumo lançado nesta data.</div>';
         return;
       }
-      mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div></div></div>`).join("");
+      mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`).join("");
+      mealLog.querySelectorAll("[data-delete-meal]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!confirm("Tem certeza que quer excluir este consumo?")) return;
+          appData.meals = appData.meals.filter((meal) => meal.id !== button.dataset.deleteMeal);
+          saveData();
+          renderAll();
+        });
+      });
     }
 
     function renderExpenses(period = currentPeriod) {
@@ -752,7 +770,15 @@
         expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
         return;
       }
-      expenseLog.innerHTML = expenses.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div></div></div>`).join("");
+      expenseLog.innerHTML = expenses.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div><button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`).join("");
+      expenseLog.querySelectorAll("[data-delete-expense]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!confirm("Tem certeza que quer excluir este gasto?")) return;
+          appData.expenses = appData.expenses.filter((expense) => expense.id !== button.dataset.deleteExpense);
+          saveData();
+          renderAll();
+        });
+      });
     }
 
     function renderAll() {
