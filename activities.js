@@ -6,8 +6,8 @@ export const activities = [
   },
   {
     id: "trabalho-sentado",
-    name: "Trabalho no Computador",
-    caloriesPerHour: 90
+    name: "Trabalho em Escritório",
+    caloriesPerHour: 120
   },
   {
     id: "academia",
