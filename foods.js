@@ -95,5 +95,53 @@ export const foods = [
       { id: "gramas", name: "Gramas", grams: 1 },
       { id: "pedaco", name: "Pedaço", grams: 200 }
     ]
+  },
+  {
+    id: "massa-alho-e-oleo",
+    name: "Massa alho e óleo",
+    category: "Alimentação",
+    caloriesPer100g: 210,
+    proteinPer100g: 6,
+    carbsPer100g: 30,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
+  },
+  {
+    id: "massa-com-carne-moida",
+    name: "Massa com carne moída",
+    category: "Alimentação",
+    caloriesPer100g: 185,
+    proteinPer100g: 9,
+    carbsPer100g: 24,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
+  },
+  {
+    id: "massa-com-carne-moida-e-queijos",
+    name: "Massa com carne moída e queijos",
+    category: "Alimentação",
+    caloriesPer100g: 220,
+    proteinPer100g: 11,
+    carbsPer100g: 22,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
+  },
+  {
+    id: "massa-com-frango",
+    name: "Massa com frango",
+    category: "Alimentação",
+    caloriesPer100g: 175,
+    proteinPer100g: 12,
+    carbsPer100g: 24,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
   }
 ];
