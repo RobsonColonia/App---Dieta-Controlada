@@ -333,6 +333,16 @@
       font-weight: 900;
     }
 
+    .edit-button {
+      border: 0;
+      border-radius: 999px;
+      background: #eef6df;
+      color: #466b2d;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
     .pill-row {
       display: grid;
       gap: 8px;
@@ -346,12 +356,14 @@
 
     .selector-tabs {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 10px;
     }
 
     .selector-tab {
       flex: 1;
+      min-width: 92px;
       border: 1px solid #d8e2c6;
       border-radius: 14px;
       background: #f5f7ef;
@@ -465,7 +477,12 @@
                 <div class="pill-row" id="food-options"></div>
                 <div class="muted hidden" id="food-hint">Mostrando itens iniciais. Use a busca para encontrar outros alimentos.</div>
               </div>
-              <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
+              <div>
+                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Medida</div>
+                <div class="selector-tabs" id="serving-options"></div>
+                <div class="muted" id="serving-hint"></div>
+              </div>
+              <label id="meal-quantity-label">Quantidade <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
               <button class="button" id="save-consumption">Salvar alimentação</button>
               <div>
                 <div class="log-summary">
@@ -546,6 +563,9 @@
     const timeUnitButtons = document.querySelectorAll("[data-time-unit]");
     const foodModeButtons = document.querySelectorAll("[data-food-mode]");
     const foodOptions = document.getElementById("food-options");
+    const servingOptions = document.getElementById("serving-options");
+    const servingHint = document.getElementById("serving-hint");
+    const mealQuantityLabel = document.getElementById("meal-quantity-label");
     const foodSearchWrap = document.getElementById("food-search-wrap");
     const foodSearch = document.getElementById("food-search");
     const foodHint = document.getElementById("food-hint");
@@ -556,24 +576,14 @@
     const sortByName = (items) => [...items].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
     const round = (value) => Math.round(value * 10) / 10;
     const todayISO = () => new Date().toISOString().slice(0, 10);
-    const fallbackFoods = [
-      { id: "arroz-tipo-1-cozido", name: "Arroz, tipo 1, cozido", caloriesPer100g: 128, proteinPer100g: 2.5, carbsPer100g: 28.1 },
-      { id: "feijao-carioca-cozido", name: "Feijão, carioca, cozido", caloriesPer100g: 76, proteinPer100g: 4.8, carbsPer100g: 13.6 },
-      { id: "frango-peito-sem-pele-grelhado", name: "Frango, peito, sem pele, grelhado", caloriesPer100g: 159, proteinPer100g: 32, carbsPer100g: 0 },
-      { id: "ovo-de-galinha-inteiro-cozido-10minutos", name: "Ovo, de galinha, inteiro, cozido/10minutos", caloriesPer100g: 146, proteinPer100g: 13.3, carbsPer100g: 0.6 },
-      { id: "banana-prata-crua", name: "Banana, prata, crua", caloriesPer100g: 98, proteinPer100g: 1.3, carbsPer100g: 26 },
-      { id: "pao-trigo-frances", name: "Pão, trigo, francês", caloriesPer100g: 300, proteinPer100g: 8, carbsPer100g: 58.6 },
-      { id: "batata-inglesa-cozida", name: "Batata, inglesa, cozida", caloriesPer100g: 52, proteinPer100g: 1.2, carbsPer100g: 11.9 },
-      { id: "carne-bovina-patinho-sem-gordura-grelhado", name: "Carne, bovina, patinho, sem gordura, grelhado", caloriesPer100g: 219, proteinPer100g: 35.9, carbsPer100g: 0 }
-    ];
-    let foods = fallbackFoods;
+    let foods = [];
     try {
       const dataModule = await import("./foods.js");
-      if (Array.isArray(dataModule.foods) && dataModule.foods.length > 0) {
+      if (Array.isArray(dataModule.foods)) {
         foods = dataModule.foods;
       }
     } catch (error) {
-      console.warn("Base completa de alimentos não carregou; usando base mínima.", error);
+      console.warn("Base de alimentos não carregou.", error);
     }
     const activityPresets = [
       { id: "caminhada", name: "Caminhada", caloriesPerHour: 240 },
@@ -595,6 +605,7 @@
 
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
     let selectedFoodId = foods[0]?.id;
+    let selectedServingId = "gramas";
     let selectedActivityId = activityPresets[0].id;
     let selectedTimeUnit = "minutes";
     let currentFoodMode = "popular";
@@ -638,6 +649,14 @@
       return `${prefix} de ${period}`;
     }
 
+    function dateLabel(date) {
+      if (date === todayISO()) return "hoje";
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (date === yesterday.toISOString().slice(0, 10)) return "ontem";
+      return date.split("-").reverse().join("/");
+    }
+
     function calculateNutrition(food, grams) {
       const factor = grams / 100;
       return {
@@ -645,6 +664,40 @@
         protein: round((food.proteinPer100g || 0) * factor),
         carbs: round((food.carbsPer100g || 0) * factor)
       };
+    }
+
+    function selectedFood() {
+      return foods.find((item) => item.id === selectedFoodId);
+    }
+
+    function servingsForFood(food) {
+      return food?.servings?.length ? food.servings : [{ id: "gramas", name: "Gramas", grams: 1 }];
+    }
+
+    function selectedServing() {
+      const food = selectedFood();
+      return servingsForFood(food).find((item) => item.id === selectedServingId) || servingsForFood(food)[0];
+    }
+
+    function renderServingOptions() {
+      const food = selectedFood();
+      const servings = servingsForFood(food);
+      if (!servings.some((item) => item.id === selectedServingId)) {
+        selectedServingId = servings[0]?.id || "gramas";
+      }
+      servingOptions.innerHTML = servings
+        .map((item) => `<button type="button" data-serving-id="${item.id}" class="selector-tab ${item.id === selectedServingId ? "active" : ""}">${item.name}</button>`)
+        .join("");
+      const serving = selectedServing();
+      mealQuantityLabel.childNodes[0].textContent = serving?.grams === 1 ? "Quantidade em gramas " : `Quantidade em ${serving.name.toLowerCase()} `;
+      mealGrams.placeholder = serving?.grams === 1 ? "Ex: 150" : "Ex: 1";
+      servingHint.textContent = serving?.grams === 1 ? "Digite o peso em gramas." : `Referência: 1 ${serving.name.toLowerCase()} = ${serving.grams}g.`;
+      servingOptions.querySelectorAll("[data-serving-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedServingId = button.dataset.servingId;
+          renderServingOptions();
+        });
+      });
     }
 
     function getMostUsedFoods() {
@@ -680,6 +733,7 @@
           : '<div class="muted">Nenhum alimento encontrado nessa busca.</div>';
         foodSearchWrap.classList.toggle("hidden", mode !== "all");
         foodHint.classList.add("hidden");
+        servingOptions.innerHTML = "";
         return;
       }
 
@@ -693,8 +747,10 @@
           selectedFoodId = item.dataset.foodId;
           foodOptions.querySelectorAll(".pill").forEach((pill) => pill.classList.remove("active"));
           item.classList.add("active");
+          renderServingOptions();
         });
       });
+      renderServingOptions();
     }
 
     function renderExpenseOptions() {
@@ -840,13 +896,41 @@
         protein: round(acc.protein + (Number(item.protein) || 0)),
         carbs: round(acc.carbs + (Number(item.carbs) || 0))
       }), { calories: 0, protein: 0, carbs: 0 });
-      mealLogTitle.textContent = "Alimentação lançada hoje";
+      mealLogTitle.textContent = `Alimentação lançada ${dateLabel(selectedDate)}`;
       mealLogTotal.innerHTML = `<div>${total.calories} kcal</div><div>${total.protein}g pro</div><div>${total.carbs}g carb</div>`;
       if (meals.length === 0) {
         mealLog.innerHTML = '<div class="muted">Nenhuma alimentação lançada nesta data.</div>';
         return;
       }
-      mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`).join("");
+      mealLog.innerHTML = meals.map((item) => {
+        const portionLabel = item.quantity && item.servingName && item.servingName !== "Gramas"
+          ? `${item.quantity} ${item.servingName.toLowerCase()} (${item.grams}g)`
+          : `${item.grams}g`;
+        return `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${portionLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="edit-button" data-edit-meal="${item.id}">Editar</button><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`;
+      }).join("");
+      mealLog.querySelectorAll("[data-edit-meal]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const meal = appData.meals.find((item) => item.id === button.dataset.editMeal);
+          if (!meal) return;
+          if (!confirm("Editar esta alimentação? O lançamento atual será removido e voltará para o formulário.")) return;
+          const food = foods.find((item) => item.id === meal.foodId);
+          const servings = servingsForFood(food);
+          selectedFoodId = meal.foodId;
+          selectedServingId =
+            meal.servingId ||
+            servings.find((item) => item.name === meal.servingName)?.id ||
+            servings.find((item) => item.grams === round((Number(meal.grams) || 0) / (Number(meal.quantity) || 1)))?.id ||
+            "gramas";
+          mealDate.value = meal.date;
+          mealGrams.value = meal.quantity || meal.grams;
+          currentFoodMode = "all";
+          foodModeButtons.forEach((item) => item.classList.toggle("active", item.dataset.foodMode === "all"));
+          appData.meals = appData.meals.filter((item) => item.id !== meal.id);
+          saveData();
+          renderFoodOptions("all");
+          renderAll();
+        });
+      });
       mealLog.querySelectorAll("[data-delete-meal]").forEach((button) => {
         button.addEventListener("click", () => {
           if (!confirm("Tem certeza que quer excluir esta alimentação?")) return;
@@ -876,7 +960,7 @@
       const selectedDate = expenseDate.value || todayISO();
       const expenses = appData.expenses.filter((item) => item.date === selectedDate);
       const total = round(expenses.reduce((sum, item) => sum + (Number(item.calories) || 0), 0));
-      expenseLogTitle.textContent = "Atividades lançadas hoje";
+      expenseLogTitle.textContent = `Atividades lançadas ${dateLabel(selectedDate)}`;
       expenseLogTotal.innerHTML = `<div>${total} kcal</div>`;
       if (expenses.length === 0) {
         expenseLog.innerHTML = '<div class="muted">Nenhuma atividade lançada nesta data.</div>';
@@ -885,8 +969,29 @@
       expenseLog.innerHTML = expenses.map((item) => {
         const timeLabel = item.minutes > 0 ? `${item.minutes} min` : "valor manual";
         const hourLabel = item.minutes > 0 ? `<div>${Math.round((item.minutes / 60) * 10) / 10}h total</div>` : "";
-        return `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${timeLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div>${hourLabel}<button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`;
+        return `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${timeLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div>${hourLabel}<button class="edit-button" data-edit-expense="${item.id}">Editar</button><button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`;
       }).join("");
+      expenseLog.querySelectorAll("[data-edit-expense]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const expense = appData.expenses.find((item) => item.id === button.dataset.editExpense);
+          if (!expense) return;
+          if (!confirm("Editar esta atividade? O lançamento atual será removido e voltará para o formulário.")) return;
+          const activity = activityPresets.find((item) => item.id === expense.activityId);
+          selectedActivityId = expense.activityId;
+          expenseDate.value = expense.date;
+          if (activity?.manualCalories || !expense.minutes) {
+            expenseMinutes.value = expense.calories;
+          } else {
+            selectedTimeUnit = "minutes";
+            expenseMinutes.value = expense.minutes;
+            timeUnitButtons.forEach((item) => item.classList.toggle("active", item.dataset.timeUnit === "minutes"));
+          }
+          appData.expenses = appData.expenses.filter((item) => item.id !== expense.id);
+          saveData();
+          renderExpenseOptions();
+          renderAll();
+        });
+      });
       expenseLog.querySelectorAll("[data-delete-expense]").forEach((button) => {
         button.addEventListener("click", () => {
           if (!confirm("Tem certeza que quer excluir esta atividade?")) return;
@@ -924,6 +1029,10 @@
     });
 
     foodSearch.addEventListener("input", () => renderFoodOptions("all"));
+    mealDate.addEventListener("input", renderMealLog);
+    mealDate.addEventListener("change", renderMealLog);
+    expenseDate.addEventListener("input", renderExpenseLog);
+    expenseDate.addEventListener("change", renderExpenseLog);
     expenseMinutes.addEventListener("input", updateExpensePreview);
     timeUnitButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -937,13 +1046,25 @@
 
     saveConsumption.addEventListener("click", () => {
       const food = foods.find((item) => item.id === selectedFoodId);
-      const grams = Number(String(mealGrams.value).replace(",", "."));
-      if (!food || !grams || grams <= 0) {
+      const quantity = Number(String(mealGrams.value).replace(",", "."));
+      const serving = selectedServing();
+      const grams = round(quantity * (Number(serving?.grams) || 1));
+      if (!food || !quantity || quantity <= 0) {
         alert("Escolha um alimento e informe a quantidade.");
         return;
       }
       const nutrition = calculateNutrition(food, grams);
-      appData.meals.unshift({ id: `${Date.now()}`, date: mealDate.value || todayISO(), foodId: food.id, foodName: food.name, grams, ...nutrition });
+      appData.meals.unshift({
+        id: `${Date.now()}`,
+        date: mealDate.value || todayISO(),
+        foodId: food.id,
+        foodName: food.name,
+        grams,
+        quantity,
+        servingName: serving?.name || "Gramas",
+        servingId: serving?.id || "gramas",
+        ...nutrition
+      });
       mealGrams.value = "";
       saveData();
       currentPeriod = "hoje";

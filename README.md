@@ -4,7 +4,7 @@ App mobile para controle de dieta, alimentação diária, atividades e relatóri
 
 ## Funcionalidades da primeira versão
 
-- Base de alimentos pré-cadastrada no projeto.
+- Base de alimentos cadastrada manualmente no projeto.
 - Base de atividades pré-cadastrada no projeto.
 - Registro de alimentação por data, item e quantidade.
 - Registro de atividades por tempo ou kcal manual.
@@ -15,7 +15,7 @@ App mobile para controle de dieta, alimentação diária, atividades e relatóri
 
 ## Cadastro de itens
 
-O usuário final não cadastra alimentos ou atividades pelo celular. A base é mantida no código:
+O usuário final não cadastra alimentos ou atividades pelo celular. A base é mantida no código, começando com alimentos vazios para cadastro manual:
 
 ```text
 src/data/foods.js

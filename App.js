@@ -36,88 +36,13 @@ function sortByName(items) {
   return [...items].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
-const legacyStarterFoods = [
-  {
-    id: "arroz",
-    name: "Arroz branco cozido",
-    category: "Carboidrato",
-    caloriesPer100g: 130,
-    proteinPer100g: 2.7,
-    carbsPer100g: 28,
-    fatPer100g: 0.3
-  },
-  {
-    id: "frango",
-    name: "Peito de frango grelhado",
-    category: "Proteína",
-    caloriesPer100g: 165,
-    proteinPer100g: 31,
-    carbsPer100g: 0,
-    fatPer100g: 3.6
-  },
-  {
-    id: "feijao",
-    name: "Feijão cozido",
-    category: "Carboidrato",
-    caloriesPer100g: 76,
-    proteinPer100g: 4.8,
-    carbsPer100g: 13.6,
-    fatPer100g: 0.5
-  }
-];
-
-const legacyActivityPresets = [
-  {
-    id: "caminhada",
-    name: "Caminhada",
-    caloriesPerHour: 240
-  },
-  {
-    id: "trabalho-sentado",
-    name: "Trabalho em Escritório",
-    caloriesPerHour: 120
-  },
-  {
-    id: "academia",
-    name: "Academia",
-    caloriesPerHour: 420
-  },
-  {
-    id: "sono",
-    name: "Sono",
-    caloriesPerHour: 60
-  },
-  {
-    id: "trabalho-em-pe",
-    name: "Trabalho em pé",
-    caloriesPerHour: 140
-  },
-  {
-    id: "limpeza-de-casa",
-    name: "Limpeza de casa",
-    caloriesPerHour: 180
-  },
-  {
-    id: "deitar-com-forninho",
-    name: "Deitar com Forninho",
-    caloriesPerHour: 70
-  },
-  {
-    id: "corrida-leve",
-    name: "Corrida leve",
-    caloriesPerHour: 520
-  },
-  {
-    id: "bicicleta",
-    name: "Bicicleta",
-    caloriesPerHour: 300
-  },
-  {
-    id: "inserir-manual",
-    name: "Inserir manual",
-    manualCalories: true
-  }
-];
+function dateLabel(date) {
+  if (date === todayISO()) return "hoje";
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date === yesterday.toISOString().slice(0, 10)) return "ontem";
+  return String(date).split("-").reverse().join("/");
+}
 
 const initialState = {
   foods: starterFoods,
@@ -133,7 +58,8 @@ export default function App() {
   const [foodSearch, setFoodSearch] = useState("");
   const [mealForm, setMealForm] = useState({
     date: todayISO(),
-    foodId: starterFoods[0].id,
+    foodId: starterFoods[0]?.id || "",
+    servingId: "gramas",
     grams: ""
   });
   const [expenseForm, setExpenseForm] = useState({
@@ -241,6 +167,11 @@ export default function App() {
   const selectedDateExpenses = state.expenses.filter((expense) => expense.date === expenseForm.date);
   const selectedExpenseActivity = activityPresets.find((item) => item.id === expenseForm.activityId);
   const isManualExpense = Boolean(selectedExpenseActivity?.manualCalories);
+  const selectedMealFood = state.foods.find((item) => item.id === mealForm.foodId);
+  const mealServings = selectedMealFood?.servings?.length
+    ? selectedMealFood.servings
+    : [{ id: "gramas", name: "Gramas", grams: 1 }];
+  const selectedMealServing = mealServings.find((item) => item.id === mealForm.servingId) || mealServings[0];
   const selectedDateMealTotals = selectedDateMeals.reduce(
     (acc, meal) => ({
       calories: round(acc.calories + (Number(meal.calories) || 0)),
@@ -252,6 +183,8 @@ export default function App() {
   const selectedDateExpenseTotal = round(
     selectedDateExpenses.reduce((sum, expense) => sum + (Number(expense.calories) || 0), 0)
   );
+  const selectedMealDateLabel = dateLabel(mealForm.date);
+  const selectedExpenseDateLabel = dateLabel(expenseForm.date);
   const visibleFoods = useMemo(() => {
     if (foodMode === "popular") {
       const usage = state.meals.reduce((acc, meal) => {
@@ -323,13 +256,18 @@ export default function App() {
       return;
     }
 
-    const nutrition = calculateNutrition(food, mealForm.grams);
+    const quantity = Number(String(mealForm.grams).replace(",", "."));
+    const grams = round(quantity * (Number(selectedMealServing?.grams) || 1));
+    const nutrition = calculateNutrition(food, grams);
     const newMeal = {
       id: `${Date.now()}`,
       date: mealForm.date,
       foodId: food.id,
       foodName: food.name,
-      grams: Number(mealForm.grams),
+      grams,
+      quantity,
+      servingName: selectedMealServing?.name || "Gramas",
+      servingId: selectedMealServing?.id || "gramas",
       ...nutrition
     };
 
@@ -392,6 +330,58 @@ export default function App() {
             ...current,
             expenses: current.expenses.filter((expense) => expense.id !== id)
           }))
+      }
+    ]);
+  }
+
+  function editMeal(meal) {
+    Alert.alert("Editar alimentação", "O lançamento atual será removido e voltará para o formulário.", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Editar",
+        onPress: () => {
+          const food = state.foods.find((item) => item.id === meal.foodId);
+          const servings = food?.servings?.length ? food.servings : [{ id: "gramas", name: "Gramas", grams: 1 }];
+          const servingId =
+            meal.servingId ||
+            servings.find((item) => item.name === meal.servingName)?.id ||
+            servings.find((item) => item.grams === round((Number(meal.grams) || 0) / (Number(meal.quantity) || 1)))?.id ||
+            "gramas";
+          setMealForm({
+            date: meal.date,
+            foodId: meal.foodId,
+            servingId,
+            grams: String(meal.quantity || meal.grams || "")
+          });
+          setFoodMode("all");
+          setState((current) => ({
+            ...current,
+            meals: current.meals.filter((item) => item.id !== meal.id)
+          }));
+        }
+      }
+    ]);
+  }
+
+  function editExpense(expense) {
+    Alert.alert("Editar atividade", "O lançamento atual será removido e voltará para o formulário.", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Editar",
+        onPress: () => {
+          const activity = activityPresets.find((item) => item.id === expense.activityId);
+          const isManual = Boolean(activity?.manualCalories) || !expense.minutes;
+          setExpenseForm({
+            date: expense.date,
+            activityId: expense.activityId,
+            unit: "minutes",
+            time: String(isManual ? expense.calories : expense.minutes || "")
+          });
+          setState((current) => ({
+            ...current,
+            expenses: current.expenses.filter((item) => item.id !== expense.id)
+          }));
+        }
       }
     ]);
   }
@@ -517,7 +507,13 @@ export default function App() {
                     <TouchableOpacity
                       key={food.id}
                       style={[styles.foodPill, mealForm.foodId === food.id && styles.foodPillActive]}
-                      onPress={() => setMealForm({ ...mealForm, foodId: food.id })}
+                      onPress={() =>
+                        setMealForm({
+                          ...mealForm,
+                          foodId: food.id,
+                          servingId: food.servings?.[0]?.id || "gramas"
+                        })
+                      }
                     >
                       <Text style={[styles.foodPillText, mealForm.foodId === food.id && styles.foodPillTextActive]}>
                         {food.name}
@@ -529,8 +525,27 @@ export default function App() {
               {foodMode === "all" && !foodSearch && (
                 <Text style={styles.muted}>Mostrando os primeiros 80 itens. Use a busca para encontrar outros alimentos.</Text>
               )}
+              <Text style={styles.label}>Medida</Text>
+              <View style={styles.selectorTabs}>
+                {mealServings.map((serving) => (
+                  <TouchableOpacity
+                    key={serving.id}
+                    style={[styles.selectorTab, mealForm.servingId === serving.id && styles.selectorTabActive]}
+                    onPress={() => setMealForm({ ...mealForm, servingId: serving.id })}
+                  >
+                    <Text style={[styles.selectorTabText, mealForm.servingId === serving.id && styles.selectorTabTextActive]}>
+                      {serving.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={styles.muted}>
+                {selectedMealServing?.grams === 1
+                  ? "Digite o peso em gramas."
+                  : `Referência: 1 ${selectedMealServing.name.toLowerCase()} = ${selectedMealServing.grams}g.`}
+              </Text>
               <Input
-                label="Quantidade em gramas/ml"
+                label={selectedMealServing?.grams === 1 ? "Quantidade em gramas" : `Quantidade em ${selectedMealServing.name.toLowerCase()}`}
                 keyboardType="numeric"
                 value={mealForm.grams}
                 onChangeText={(grams) => setMealForm({ ...mealForm, grams })}
@@ -538,7 +553,7 @@ export default function App() {
               <Button label="Salvar alimentação" onPress={addMeal} />
               <View style={styles.inlineLog}>
                 <View style={styles.logSummary}>
-                  <Text style={styles.cardTitle}>Alimentação lançada hoje</Text>
+                  <Text style={styles.cardTitle}>Alimentação lançada {selectedMealDateLabel}</Text>
                   <View style={styles.macroSummary}>
                     <Text style={styles.macroSummaryText}>{selectedDateMealTotals.calories} kcal</Text>
                     <Text style={styles.macroSummaryText}>{selectedDateMealTotals.protein}g pro</Text>
@@ -548,7 +563,14 @@ export default function App() {
                 {selectedDateMeals.length === 0 ? (
                   <Text style={styles.muted}>Nenhuma alimentação lançada nesta data.</Text>
                 ) : (
-                  selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} onDelete={() => deleteMeal(meal.id)} />)
+                  selectedDateMeals.map((meal) => (
+                    <MealItem
+                      key={meal.id}
+                      meal={meal}
+                      onEdit={() => editMeal(meal)}
+                      onDelete={() => deleteMeal(meal.id)}
+                    />
+                  ))
                 )}
               </View>
             </Section>
@@ -641,7 +663,7 @@ export default function App() {
               <Button label="Salvar atividade" onPress={addExpense} />
               <View style={styles.inlineLog}>
                 <View style={styles.logSummary}>
-                  <Text style={styles.cardTitle}>Atividades lançadas hoje</Text>
+                  <Text style={styles.cardTitle}>Atividades lançadas {selectedExpenseDateLabel}</Text>
                   <View style={styles.macroSummary}>
                     <Text style={styles.macroSummaryText}>{selectedDateExpenseTotal} kcal</Text>
                   </View>
@@ -650,7 +672,12 @@ export default function App() {
                   <Text style={styles.muted}>Nenhuma atividade lançada nesta data.</Text>
                 ) : (
                   selectedDateExpenses.map((expense) => (
-                    <ActivityItem key={expense.id} activity={expense} onDelete={() => deleteExpense(expense.id)} />
+                    <ActivityItem
+                      key={expense.id}
+                      activity={expense}
+                      onEdit={() => editExpense(expense)}
+                      onDelete={() => deleteExpense(expense.id)}
+                    />
                   ))
                 )}
               </View>
@@ -713,17 +740,22 @@ function Button({ label, onPress }) {
   );
 }
 
-function MealItem({ meal, onDelete }) {
+function MealItem({ meal, onEdit, onDelete }) {
+  const portionLabel = meal.quantity && meal.servingName && meal.servingName !== "Gramas"
+    ? `${meal.quantity} ${meal.servingName.toLowerCase()} (${meal.grams}g)`
+    : `${meal.grams}g`;
+
   return (
     <View style={styles.mealItem}>
       <View>
         <Text style={styles.mealTitle}>{meal.foodName}</Text>
         <Text style={styles.muted}>
-          {meal.date} • {meal.grams}g/ml
+          {meal.date} • {portionLabel}
         </Text>
       </View>
       <View style={styles.itemActions}>
         <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+        {onEdit && <EditButton onPress={onEdit} />}
         {onDelete && <DeleteButton onPress={onDelete} />}
       </View>
     </View>
@@ -746,7 +778,7 @@ function ConsumptionFoodItem({ item }) {
   );
 }
 
-function ActivityItem({ activity, onDelete }) {
+function ActivityItem({ activity, onEdit, onDelete }) {
   const isManual = !activity.minutes;
 
   return (
@@ -759,6 +791,7 @@ function ActivityItem({ activity, onDelete }) {
       </View>
       <View style={styles.itemActions}>
         <Text style={styles.mealCalories}>{activity.calories} kcal</Text>
+        {onEdit && <EditButton onPress={onEdit} />}
         {onDelete && <DeleteButton onPress={onDelete} />}
       </View>
     </View>
@@ -769,6 +802,14 @@ function DeleteButton({ onPress }) {
   return (
     <TouchableOpacity style={styles.deleteButton} onPress={onPress}>
       <Text style={styles.deleteButtonText}>Excluir</Text>
+    </TouchableOpacity>
+  );
+}
+
+function EditButton({ onPress }) {
+  return (
+    <TouchableOpacity style={styles.editButton} onPress={onPress}>
+      <Text style={styles.editButtonText}>Editar</Text>
     </TouchableOpacity>
   );
 }
@@ -1048,10 +1089,12 @@ const styles = StyleSheet.create({
   },
   selectorTabs: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8
   },
   selectorTab: {
     flex: 1,
+    minWidth: 92,
     borderColor: "#D8E2C6",
     borderWidth: 1,
     borderRadius: 14,
@@ -1138,6 +1181,17 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: "#C03939",
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  editButton: {
+    backgroundColor: "#EEF6DF",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 7
+  },
+  editButtonText: {
+    color: "#466B2D",
     fontSize: 12,
     fontWeight: "900"
   },
