@@ -410,7 +410,7 @@
                 <span class="period-button" data-period="semana">Semana</span>
                 <span class="period-button" data-period="últimos 7 dias">Últ. 7 dias</span>
                 <span class="period-button" data-period="mês">Mês</span>
-                <span class="period-button" data-period="sempre">Sempre</span>
+                <span class="period-button" data-period="total">Total</span>
               </div>
               <div class="balance">0 kcal</div>
               <div class="muted">Registre consumo e gasto para acompanhar seu saldo.</div>
@@ -621,12 +621,18 @@
         date.setDate(1);
         return date.toISOString().slice(0, 10);
       }
+      if (period === "total") return "";
       return "";
     }
 
     function inPeriod(item, period) {
       const start = periodStart(period);
       return !start || item.date >= start;
+    }
+
+    function periodTitle(prefix, period = currentPeriod) {
+      if (period === "total") return prefix === "Gastos" ? "Gastos totais" : `${prefix} total`;
+      return `${prefix} de ${period}`;
     }
 
     function calculateNutrition(food, grams) {
@@ -727,8 +733,9 @@
     }
 
     function renderChart(period = currentPeriod) {
+      const chartPeriod = period === "hoje" ? "total" : period;
       let running = 0;
-      const data = seriesForPeriod(period).map((item) => {
+      const data = seriesForPeriod(chartPeriod).map((item) => {
         running = round(running + item.daily);
         return { ...item, cumulative: running };
       });
@@ -795,7 +802,7 @@
     }
 
     function renderConsumption(period = currentPeriod) {
-      consumoTitle.textContent = `Consumo de ${period}`;
+      consumoTitle.textContent = periodTitle("Consumo", period);
       const grouped = {};
       periodMeals(period).forEach((meal) => {
         grouped[meal.foodId] = grouped[meal.foodId] || { name: meal.foodName, grams: 0, calories: 0, protein: 0, carbs: 0 };
@@ -839,7 +846,7 @@
     }
 
     function renderExpenses(period = currentPeriod) {
-      gastoTitle.textContent = `Gastos de ${period}`;
+      gastoTitle.textContent = periodTitle("Gastos", period);
       const data = periodExpenses(period);
       if (data.length === 0) {
         gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste período.</div>';
@@ -956,7 +963,7 @@
         periodButtons.forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
         currentPeriod = button.dataset.period;
-        saldoTitle.textContent = `Saldo de ${currentPeriod}`;
+        saldoTitle.textContent = periodTitle("Saldo", currentPeriod);
         renderAll();
       });
     });

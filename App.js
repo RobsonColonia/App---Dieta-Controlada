@@ -194,8 +194,9 @@ export default function App() {
     });
 
     const allDates = Object.keys(dateMap).sort();
-    const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
-    const dates = period === "all" ? allDates : allDates.filter((date) => date >= periodStart);
+    const chartPeriod = period === "day" ? "all" : period;
+    const periodStart = chartPeriod === "all" ? "" : getPeriodStart(chartPeriod);
+    const dates = chartPeriod === "all" ? allDates : allDates.filter((date) => date >= periodStart);
     let runningBalance = 0;
 
     const realData = dates.map((date) => {
@@ -223,8 +224,11 @@ export default function App() {
     week: "semana",
     last7: "últimos 7 dias",
     month: "mês",
-    all: "sempre"
+    all: "total"
   }[period];
+  const saldoTitle = period === "all" ? "Saldo total" : `Saldo de ${periodLabel}`;
+  const consumoTitle = period === "all" ? "Consumo total" : `Consumo de ${periodLabel}`;
+  const gastoTitle = period === "all" ? "Gastos totais" : `Gastos de ${periodLabel}`;
   const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
   const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
@@ -400,13 +404,13 @@ export default function App() {
           {activeTab === "dashboard" && (
             <>
               <View style={styles.cardHero}>
-                <Text style={styles.cardTitle}>Saldo de {periodLabel}</Text>
+                <Text style={styles.cardTitle}>{saldoTitle}</Text>
                 <View style={styles.heroPeriods}>
                   <PeriodButton label="Hoje" active={period === "day"} onPress={() => setPeriod("day")} />
                   <PeriodButton label="Semana" active={period === "week"} onPress={() => setPeriod("week")} />
                   <PeriodButton label="Últ. 7 dias" active={period === "last7"} onPress={() => setPeriod("last7")} />
                   <PeriodButton label="Mês" active={period === "month"} onPress={() => setPeriod("month")} />
-                  <PeriodButton label="Sempre" active={period === "all"} onPress={() => setPeriod("all")} />
+                  <PeriodButton label="Total" active={period === "all"} onPress={() => setPeriod("all")} />
                 </View>
                 <Text style={[styles.balance, balance > 0 ? styles.balancePositive : styles.balanceNegative]}>
                   {formatSigned(balance)} kcal
@@ -440,7 +444,7 @@ export default function App() {
                 )}
               </Section>
 
-              <Section title={`Consumo de ${periodLabel}`}>
+              <Section title={consumoTitle}>
                 {consumptionByFood.length === 0 ? (
                   <Text style={styles.muted}>Nenhum consumo registrado neste período.</Text>
                 ) : (
@@ -448,7 +452,7 @@ export default function App() {
                 )}
               </Section>
 
-              <Section title={`Gastos de ${periodLabel}`}>
+              <Section title={gastoTitle}>
                 {expensesByActivity.length === 0 ? (
                   <Text style={styles.muted}>Nenhuma atividade registrada neste período.</Text>
                 ) : (
