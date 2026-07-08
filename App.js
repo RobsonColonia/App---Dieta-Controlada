@@ -111,6 +111,11 @@ const legacyActivityPresets = [
     id: "bicicleta",
     name: "Bicicleta",
     caloriesPerHour: 300
+  },
+  {
+    id: "inserir-manual",
+    name: "Inserir manual",
+    manualCalories: true
   }
 ];
 
@@ -234,6 +239,8 @@ export default function App() {
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
   const selectedDateMeals = state.meals.filter((meal) => meal.date === mealForm.date);
   const selectedDateExpenses = state.expenses.filter((expense) => expense.date === expenseForm.date);
+  const selectedExpenseActivity = activityPresets.find((item) => item.id === expenseForm.activityId);
+  const isManualExpense = Boolean(selectedExpenseActivity?.manualCalories);
   const selectedDateMealTotals = selectedDateMeals.reduce(
     (acc, meal) => ({
       calories: round(acc.calories + (Number(meal.calories) || 0)),
@@ -334,12 +341,18 @@ export default function App() {
     const activity = activityPresets.find((item) => item.id === expenseForm.activityId);
 
     if (!activity || !expenseForm.time) {
-      Alert.alert("Faltou algo", "Escolha uma atividade e informe o tempo.");
+      Alert.alert("Faltou algo", activity?.manualCalories ? "Informe as kcal gastas." : "Escolha uma atividade e informe o tempo.");
       return;
     }
 
-    const minutes = expenseForm.unit === "hours" ? Number(expenseForm.time) * 60 : Number(expenseForm.time);
-    const calories = round((minutes / 60) * activity.caloriesPerHour);
+    const isManual = Boolean(activity.manualCalories);
+    const rawValue = Number(String(expenseForm.time).replace(",", "."));
+    const minutes = isManual ? 0 : expenseForm.unit === "hours" ? rawValue * 60 : rawValue;
+    const calories = isManual ? round(rawValue) : round((minutes / 60) * activity.caloriesPerHour);
+    if (!calories || calories <= 0) {
+      Alert.alert("Faltou algo", isManual ? "Informe as kcal gastas." : "Informe o tempo.");
+      return;
+    }
     const newExpense = {
       id: `${Date.now()}`,
       date: expenseForm.date,
@@ -594,32 +607,36 @@ export default function App() {
                   </TouchableOpacity>
                 ))}
               </View>
-              <View style={styles.selectorTabs}>
-                <TouchableOpacity
-                  style={[styles.selectorTab, expenseForm.unit === "minutes" && styles.selectorTabActive]}
-                  onPress={() => setExpenseForm({ ...expenseForm, unit: "minutes" })}
-                >
-                  <Text style={[styles.selectorTabText, expenseForm.unit === "minutes" && styles.selectorTabTextActive]}>
-                    Min
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.selectorTab, expenseForm.unit === "hours" && styles.selectorTabActive]}
-                  onPress={() => setExpenseForm({ ...expenseForm, unit: "hours" })}
-                >
-                  <Text style={[styles.selectorTabText, expenseForm.unit === "hours" && styles.selectorTabTextActive]}>
-                    Hora
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              {!isManualExpense && (
+                <View style={styles.selectorTabs}>
+                  <TouchableOpacity
+                    style={[styles.selectorTab, expenseForm.unit === "minutes" && styles.selectorTabActive]}
+                    onPress={() => setExpenseForm({ ...expenseForm, unit: "minutes" })}
+                  >
+                    <Text style={[styles.selectorTabText, expenseForm.unit === "minutes" && styles.selectorTabTextActive]}>
+                      Min
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.selectorTab, expenseForm.unit === "hours" && styles.selectorTabActive]}
+                    onPress={() => setExpenseForm({ ...expenseForm, unit: "hours" })}
+                  >
+                    <Text style={[styles.selectorTabText, expenseForm.unit === "hours" && styles.selectorTabTextActive]}>
+                      Hora
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               <Input
-                label="Tempo"
+                label={isManualExpense ? "Calorias gastas" : "Tempo"}
                 keyboardType="numeric"
                 value={expenseForm.time}
                 onChangeText={(time) => setExpenseForm({ ...expenseForm, time })}
               />
               <Text style={styles.muted}>
-                O app calcula as calorias usando uma média pré-programada por hora para cada atividade.
+                {isManualExpense
+                  ? "O app vai salvar exatamente as kcal informadas."
+                  : "O app calcula as calorias usando uma média pré-programada por hora para cada atividade."}
               </Text>
               <Button label="Salvar atividade" onPress={addExpense} />
               <View style={styles.inlineLog}>
@@ -730,12 +747,14 @@ function ConsumptionFoodItem({ item }) {
 }
 
 function ActivityItem({ activity, onDelete }) {
+  const isManual = !activity.minutes;
+
   return (
     <View style={styles.mealItem}>
       <View>
         <Text style={styles.mealTitle}>{activity.description}</Text>
         <Text style={styles.muted}>
-          {activity.date} • {activity.minutes || 0} min
+          {activity.date} • {isManual ? "valor manual" : `${activity.minutes} min`}
         </Text>
       </View>
       <View style={styles.itemActions}>
@@ -756,16 +775,17 @@ function DeleteButton({ onPress }) {
 
 function ExpenseActivitySummary({ expense }) {
   const hours = round(expense.minutes / 60);
+  const isManual = !expense.minutes;
 
   return (
     <View style={styles.mealItem}>
       <View style={styles.mealText}>
         <Text style={styles.mealTitle}>{expense.name}</Text>
-        <Text style={styles.muted}>{expense.minutes} min acumulados</Text>
+        <Text style={styles.muted}>{isManual ? "valor manual" : `${expense.minutes} min acumulados`}</Text>
       </View>
       <View style={styles.macroSummary}>
         <Text style={styles.macroSummaryText}>{expense.calories} kcal</Text>
-        <Text style={styles.macroSummaryText}>{hours}h total</Text>
+        {!isManual && <Text style={styles.macroSummaryText}>{hours}h total</Text>}
       </View>
     </View>
   );

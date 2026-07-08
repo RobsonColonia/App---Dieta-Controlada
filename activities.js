@@ -43,5 +43,10 @@ export const activities = [
     id: "bicicleta",
     name: "Bicicleta",
     caloriesPerHour: 300
+  },
+  {
+    id: "inserir-manual",
+    name: "Inserir manual",
+    manualCalories: true
   }
 ];

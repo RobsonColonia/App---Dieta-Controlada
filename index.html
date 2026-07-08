@@ -489,11 +489,11 @@
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Atividade</div>
                 <div class="pill-row" id="expense-options"></div>
               </div>
-              <div class="selector-tabs">
+              <div class="selector-tabs" id="time-unit-tabs">
                 <button class="selector-tab active" data-time-unit="minutes">Min</button>
                 <button class="selector-tab" data-time-unit="hours">Hora</button>
               </div>
-              <label>Tempo <input id="expense-minutes" inputmode="decimal" placeholder="Ex: 45" /></label>
+              <label id="expense-input-label">Tempo <input id="expense-minutes" inputmode="decimal" placeholder="Ex: 45" /></label>
               <div class="muted" id="expense-preview">Selecione uma atividade e informe o tempo.</div>
               <button class="button" id="save-expense">Salvar atividade</button>
               <div>
@@ -534,6 +534,7 @@
     const mealLogTotal = document.getElementById("meal-log-total");
     const mealLog = document.getElementById("meal-log");
     const expenseDate = document.getElementById("expense-date");
+    const expenseInputLabel = document.getElementById("expense-input-label");
     const expenseMinutes = document.getElementById("expense-minutes");
     const expenseOptions = document.getElementById("expense-options");
     const expensePreview = document.getElementById("expense-preview");
@@ -541,6 +542,7 @@
     const expenseLogTitle = document.getElementById("expense-log-title");
     const expenseLogTotal = document.getElementById("expense-log-total");
     const expenseLog = document.getElementById("expense-log");
+    const timeUnitTabs = document.getElementById("time-unit-tabs");
     const timeUnitButtons = document.querySelectorAll("[data-time-unit]");
     const foodModeButtons = document.querySelectorAll("[data-food-mode]");
     const foodOptions = document.getElementById("food-options");
@@ -582,7 +584,8 @@
       { id: "limpeza-de-casa", name: "Limpeza de casa", caloriesPerHour: 180 },
       { id: "deitar-com-forninho", name: "Deitar com Forninho", caloriesPerHour: 70 },
       { id: "corrida-leve", name: "Corrida leve", caloriesPerHour: 520 },
-      { id: "bicicleta", name: "Bicicleta", caloriesPerHour: 300 }
+      { id: "bicicleta", name: "Bicicleta", caloriesPerHour: 300 },
+      { id: "inserir-manual", name: "Inserir manual", manualCalories: true }
     ];
 
     if (new URLSearchParams(window.location.search).get("clear") === "1") {
@@ -712,6 +715,16 @@
     function updateExpensePreview() {
       const activity = activityPresets.find((item) => item.id === selectedActivityId);
       const rawTime = Number(String(expenseMinutes.value).replace(",", ".")) || 0;
+      const isManual = Boolean(activity?.manualCalories);
+      timeUnitTabs.classList.toggle("hidden", isManual);
+      expenseInputLabel.childNodes[0].textContent = isManual ? "Calorias gastas " : "Tempo ";
+      expenseMinutes.placeholder = isManual ? "Ex: 350" : selectedTimeUnit === "hours" ? "Ex: 1.5" : "Ex: 45";
+      if (isManual) {
+        expensePreview.textContent = rawTime
+          ? `Valor manual: ${round(rawTime)} kcal.`
+          : "Informe quantas kcal deseja lançar.";
+        return;
+      }
       const minutes = selectedTimeUnit === "hours" ? rawTime * 60 : rawTime;
       const calories = activity && minutes ? round((minutes / 60) * activity.caloriesPerHour) : 0;
       expensePreview.textContent = activity && minutes
@@ -852,7 +865,11 @@
         gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste período.</div>';
         return;
       }
-      gastoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min acumulados</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div></div></div>`).join("");
+      gastoResumo.innerHTML = data.map((item) => {
+        const timeLabel = item.minutes > 0 ? `${item.minutes} min acumulados` : "valor manual";
+        const hourLabel = item.minutes > 0 ? `<div>${Math.round((item.minutes / 60) * 10) / 10}h total</div>` : "";
+        return `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${timeLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div>${hourLabel}</div></div>`;
+      }).join("");
     }
 
     function renderExpenseLog() {
@@ -865,7 +882,11 @@
         expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
         return;
       }
-      expenseLog.innerHTML = expenses.map((item) => `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${item.minutes} min</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${Math.round((item.minutes / 60) * 10) / 10}h total</div><button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`).join("");
+      expenseLog.innerHTML = expenses.map((item) => {
+        const timeLabel = item.minutes > 0 ? `${item.minutes} min` : "valor manual";
+        const hourLabel = item.minutes > 0 ? `<div>${Math.round((item.minutes / 60) * 10) / 10}h total</div>` : "";
+        return `<div class="meal"><div><div class="meal-name">${item.activity || item.description}</div><div class="muted">${timeLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div>${hourLabel}<button class="delete-button" data-delete-expense="${item.id}">Excluir</button></div></div>`;
+      }).join("");
       expenseLog.querySelectorAll("[data-delete-expense]").forEach((button) => {
         button.addEventListener("click", () => {
           if (!confirm("Tem certeza que quer excluir este gasto?")) return;
@@ -935,12 +956,17 @@
     saveExpense.addEventListener("click", () => {
       const activity = activityPresets.find((item) => item.id === selectedActivityId);
       const rawTime = Number(String(expenseMinutes.value).replace(",", "."));
-      const minutes = selectedTimeUnit === "hours" ? rawTime * 60 : rawTime;
-      if (!activity || !minutes || minutes <= 0) {
-        alert("Escolha uma atividade e informe o tempo.");
+      if (!activity) {
+        alert("Escolha uma atividade.");
         return;
       }
-      const calories = round((minutes / 60) * activity.caloriesPerHour);
+      const isManual = Boolean(activity?.manualCalories);
+      const minutes = isManual ? 0 : selectedTimeUnit === "hours" ? rawTime * 60 : rawTime;
+      const calories = isManual ? round(rawTime) : round((minutes / 60) * activity.caloriesPerHour);
+      if (!activity || !calories || calories <= 0) {
+        alert(isManual ? "Informe as kcal gastas." : "Escolha uma atividade e informe o tempo.");
+        return;
+      }
       appData.expenses.unshift({
         id: `${Date.now()}`,
         date: expenseDate.value || todayISO(),
