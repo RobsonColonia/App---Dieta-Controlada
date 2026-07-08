@@ -397,8 +397,8 @@
 
         <nav class="tabs" aria-label="Abas do app">
           <button class="tab active" data-tab="hoje">Resumo</button>
-          <button class="tab" data-tab="refeicao">Consumo</button>
-          <button class="tab" data-tab="gasto">Gasto</button>
+          <button class="tab" data-tab="refeicao">Alimentação</button>
+          <button class="tab" data-tab="gasto">Atividades</button>
         </nav>
 
         <main>
@@ -413,14 +413,14 @@
                 <span class="period-button" data-period="total">Total</span>
               </div>
               <div class="balance">0 kcal</div>
-              <div class="muted">Registre consumo e gasto para acompanhar seu saldo.</div>
+              <div class="muted">Registre alimentação e atividades para acompanhar seu saldo.</div>
               <div class="hero-metrics">
                 <div class="metric">
-                  <div class="metric-label">Consumido</div>
+                  <div class="metric-label">Alimentação</div>
                   <div class="metric-value" id="metric-consumed">0 kcal</div>
                 </div>
                 <div class="metric">
-                  <div class="metric-label">Gasto</div>
+                  <div class="metric-label">Atividades</div>
                   <div class="metric-value" id="metric-spent">0 kcal</div>
                 </div>
                 <div class="metric">
@@ -441,22 +441,22 @@
             </div>
 
             <div class="card" style="margin-top: 14px;">
-              <h2 id="consumo-title">Consumo de hoje</h2>
+              <h2 id="consumo-title">Alimentação de hoje</h2>
               <div id="consumo-resumo"></div>
             </div>
 
             <div class="card" style="margin-top: 14px;">
-              <h2 id="gasto-title">Gastos de hoje</h2>
+              <h2 id="gasto-title">Atividades de hoje</h2>
               <div id="gasto-resumo"></div>
             </div>
           </section>
 
           <section id="refeicao" class="hidden">
             <div class="card">
-              <h2>Registrar consumo</h2>
+              <h2>Registrar alimentação</h2>
               <label>Data <input id="meal-date" /></label>
               <div>
-                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item consumido</div>
+                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item da alimentação</div>
                 <div class="selector-tabs">
                   <button class="selector-tab active" data-food-mode="popular">Mais usados</button>
                   <button class="selector-tab" data-food-mode="all">Todos itens</button>
@@ -466,10 +466,10 @@
                 <div class="muted hidden" id="food-hint">Mostrando itens iniciais. Use a busca para encontrar outros alimentos.</div>
               </div>
               <label>Quantidade em gramas/ml <input id="meal-grams" inputmode="decimal" placeholder="Ex: 150" /></label>
-              <button class="button" id="save-consumption">Salvar consumo</button>
+              <button class="button" id="save-consumption">Salvar alimentação</button>
               <div>
                 <div class="log-summary">
-                  <h2 id="meal-log-title">Consumos lançados hoje</h2>
+                  <h2 id="meal-log-title">Alimentação lançada hoje</h2>
                   <div class="macro-summary" id="meal-log-total">
                     <div>0 kcal</div>
                     <div>0g pro</div>
@@ -483,7 +483,7 @@
 
           <section id="gasto" class="hidden">
             <div class="card">
-              <h2>Registrar gasto diário</h2>
+              <h2>Registrar atividade</h2>
               <label>Data <input id="expense-date" /></label>
               <div>
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Atividade</div>
@@ -498,7 +498,7 @@
               <button class="button" id="save-expense">Salvar atividade</button>
               <div>
                 <div class="log-summary">
-                  <h2 id="expense-log-title">Gastos lançados hoje</h2>
+                  <h2 id="expense-log-title">Atividades lançadas hoje</h2>
                   <div class="macro-summary" id="expense-log-total">
                     <div>0 kcal</div>
                   </div>
@@ -634,7 +634,7 @@
     }
 
     function periodTitle(prefix, period = currentPeriod) {
-      if (period === "total") return prefix === "Gastos" ? "Gastos totais" : `${prefix} total`;
+      if (period === "total") return prefix === "Atividades" ? "Atividades totais" : `${prefix} total`;
       return `${prefix} de ${period}`;
     }
 
@@ -676,7 +676,7 @@
 
       if (source.length === 0) {
         foodOptions.innerHTML = mode === "popular"
-          ? '<div class="muted">Nenhum item usado ainda. Entre em "Todos itens" para lançar o primeiro consumo.</div>'
+          ? '<div class="muted">Nenhum item usado ainda. Entre em "Todos itens" para lançar a primeira alimentação.</div>'
           : '<div class="muted">Nenhum alimento encontrado nessa busca.</div>';
         foodSearchWrap.classList.toggle("hidden", mode !== "all");
         foodHint.classList.add("hidden");
@@ -753,7 +753,7 @@
         return { ...item, cumulative: running };
       });
       if (data.length === 0) {
-        chart.innerHTML = '<div class="muted">Registre consumo e gasto para gerar o gráfico.</div>';
+        chart.innerHTML = '<div class="muted">Registre alimentação e atividades para gerar o gráfico.</div>';
         return;
       }
       const values = data.flatMap((item) => [item.daily, item.cumulative, 0]);
@@ -807,7 +807,7 @@
 
       balanceEl.textContent = `${formatSigned(balance)} kcal`;
       balanceEl.style.color = balance > 0 ? "#ff6b6b" : balance < 0 ? "#9fe870" : "#ffffff";
-      balanceHintEl.textContent = balance > 0 ? "Superávit calórico" : balance < 0 ? "Déficit calórico" : "Registre consumo e gasto para acompanhar seu saldo.";
+      balanceHintEl.textContent = balance > 0 ? "Superávit calórico" : balance < 0 ? "Déficit calórico" : "Registre alimentação e atividades para acompanhar seu saldo.";
       metricConsumed.textContent = `${consumed} kcal`;
       metricSpent.textContent = `${spent} kcal`;
       metricProtein.textContent = `${protein} g`;
@@ -815,7 +815,7 @@
     }
 
     function renderConsumption(period = currentPeriod) {
-      consumoTitle.textContent = periodTitle("Consumo", period);
+      consumoTitle.textContent = periodTitle("Alimentação", period);
       const grouped = {};
       periodMeals(period).forEach((meal) => {
         grouped[meal.foodId] = grouped[meal.foodId] || { name: meal.foodName, grams: 0, calories: 0, protein: 0, carbs: 0 };
@@ -826,7 +826,7 @@
       });
       const data = Object.values(grouped).map((item) => ({ ...item, grams: round(item.grams), calories: round(item.calories), protein: round(item.protein), carbs: round(item.carbs) }));
       if (data.length === 0) {
-        consumoResumo.innerHTML = '<div class="muted">Nenhum consumo registrado neste período.</div>';
+        consumoResumo.innerHTML = '<div class="muted">Nenhuma alimentação registrada neste período.</div>';
         return;
       }
       consumoResumo.innerHTML = data.map((item) => `<div class="meal"><div><div class="meal-name">${item.name}</div><div class="muted">${item.grams}g/ml consumidos</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div></div></div>`).join("");
@@ -840,16 +840,16 @@
         protein: round(acc.protein + (Number(item.protein) || 0)),
         carbs: round(acc.carbs + (Number(item.carbs) || 0))
       }), { calories: 0, protein: 0, carbs: 0 });
-      mealLogTitle.textContent = "Consumos lançados hoje";
+      mealLogTitle.textContent = "Alimentação lançada hoje";
       mealLogTotal.innerHTML = `<div>${total.calories} kcal</div><div>${total.protein}g pro</div><div>${total.carbs}g carb</div>`;
       if (meals.length === 0) {
-        mealLog.innerHTML = '<div class="muted">Nenhum consumo lançado nesta data.</div>';
+        mealLog.innerHTML = '<div class="muted">Nenhuma alimentação lançada nesta data.</div>';
         return;
       }
       mealLog.innerHTML = meals.map((item) => `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${item.grams}g/ml</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`).join("");
       mealLog.querySelectorAll("[data-delete-meal]").forEach((button) => {
         button.addEventListener("click", () => {
-          if (!confirm("Tem certeza que quer excluir este consumo?")) return;
+          if (!confirm("Tem certeza que quer excluir esta alimentação?")) return;
           appData.meals = appData.meals.filter((meal) => meal.id !== button.dataset.deleteMeal);
           saveData();
           renderFoodOptions(currentFoodMode);
@@ -859,7 +859,7 @@
     }
 
     function renderExpenses(period = currentPeriod) {
-      gastoTitle.textContent = periodTitle("Gastos", period);
+      gastoTitle.textContent = periodTitle("Atividades", period);
       const data = periodExpenses(period);
       if (data.length === 0) {
         gastoResumo.innerHTML = '<div class="muted">Nenhuma atividade registrada neste período.</div>';
@@ -876,10 +876,10 @@
       const selectedDate = expenseDate.value || todayISO();
       const expenses = appData.expenses.filter((item) => item.date === selectedDate);
       const total = round(expenses.reduce((sum, item) => sum + (Number(item.calories) || 0), 0));
-      expenseLogTitle.textContent = "Gastos lançados hoje";
+      expenseLogTitle.textContent = "Atividades lançadas hoje";
       expenseLogTotal.innerHTML = `<div>${total} kcal</div>`;
       if (expenses.length === 0) {
-        expenseLog.innerHTML = '<div class="muted">Nenhum gasto lançado nesta data.</div>';
+        expenseLog.innerHTML = '<div class="muted">Nenhuma atividade lançada nesta data.</div>';
         return;
       }
       expenseLog.innerHTML = expenses.map((item) => {
@@ -889,7 +889,7 @@
       }).join("");
       expenseLog.querySelectorAll("[data-delete-expense]").forEach((button) => {
         button.addEventListener("click", () => {
-          if (!confirm("Tem certeza que quer excluir este gasto?")) return;
+          if (!confirm("Tem certeza que quer excluir esta atividade?")) return;
           appData.expenses = appData.expenses.filter((expense) => expense.id !== button.dataset.deleteExpense);
           saveData();
           renderAll();

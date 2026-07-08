@@ -1,15 +1,15 @@
 # Dieta Controlada
 
-App mobile para controle de dieta, consumo diário, gasto calórico e relatórios por período.
+App mobile para controle de dieta, alimentação diária, atividades e relatórios por período.
 
 ## Funcionalidades da primeira versão
 
 - Base de alimentos pré-cadastrada no projeto.
 - Base de atividades pré-cadastrada no projeto.
-- Registro de consumo por data, item e quantidade.
-- Registro de gasto por atividade e tempo.
-- Resumo de consumo x gasto.
-- Filtros: hoje, semana, últimos 7 dias, mês e sempre.
+- Registro de alimentação por data, item e quantidade.
+- Registro de atividades por tempo ou kcal manual.
+- Resumo de alimentação x atividades.
+- Filtros: hoje, semana, últimos 7 dias, mês e total.
 - Gráfico de saldo diário e saldo acumulado.
 - Dados de uso salvos localmente no celular.
 

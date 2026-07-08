@@ -232,8 +232,8 @@ export default function App() {
     all: "total"
   }[period];
   const saldoTitle = period === "all" ? "Saldo total" : `Saldo de ${periodLabel}`;
-  const consumoTitle = period === "all" ? "Consumo total" : `Consumo de ${periodLabel}`;
-  const gastoTitle = period === "all" ? "Gastos totais" : `Gastos de ${periodLabel}`;
+  const consumoTitle = period === "all" ? "Alimentação total" : `Alimentação de ${periodLabel}`;
+  const gastoTitle = period === "all" ? "Atividades totais" : `Atividades de ${periodLabel}`;
   const periodStart = period === "all" ? "" : period === "day" ? todayISO() : getPeriodStart(period);
   const periodMeals = state.meals.filter((meal) => period === "all" || meal.date >= periodStart);
   const periodExpenses = state.expenses.filter((expense) => period === "all" || expense.date >= periodStart);
@@ -367,7 +367,7 @@ export default function App() {
   }
 
   function deleteMeal(id) {
-    Alert.alert("Excluir consumo", "Tem certeza que quer excluir este consumo?", [
+    Alert.alert("Excluir alimentação", "Tem certeza que quer excluir esta alimentação?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
@@ -382,7 +382,7 @@ export default function App() {
   }
 
   function deleteExpense(id) {
-    Alert.alert("Excluir gasto", "Tem certeza que quer excluir este gasto?", [
+    Alert.alert("Excluir atividade", "Tem certeza que quer excluir esta atividade?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
@@ -409,8 +409,8 @@ export default function App() {
 
         <View style={styles.tabs}>
           <Tab label="Resumo" active={activeTab === "dashboard"} onPress={() => setActiveTab("dashboard")} />
-          <Tab label="Consumo" active={activeTab === "meal"} onPress={() => setActiveTab("meal")} />
-          <Tab label="Gasto" active={activeTab === "expense"} onPress={() => setActiveTab("expense")} />
+          <Tab label="Alimentação" active={activeTab === "meal"} onPress={() => setActiveTab("meal")} />
+          <Tab label="Atividades" active={activeTab === "expense"} onPress={() => setActiveTab("expense")} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
@@ -431,11 +431,11 @@ export default function App() {
                 <Text style={styles.muted}>{balanceStatus}</Text>
                 <View style={styles.heroMetrics}>
                   <View style={styles.heroMetric}>
-                    <Text style={styles.heroMetricTitle}>Consumido</Text>
+                    <Text style={styles.heroMetricTitle}>Alimentação</Text>
                     <Text style={styles.heroMetricValue}>{totals.calories} kcal</Text>
                   </View>
                   <View style={styles.heroMetric}>
-                    <Text style={styles.heroMetricTitle}>Gasto</Text>
+                    <Text style={styles.heroMetricTitle}>Atividades</Text>
                     <Text style={styles.heroMetricValue}>{totals.spent} kcal</Text>
                   </View>
                   <View style={styles.heroMetric}>
@@ -451,7 +451,7 @@ export default function App() {
 
               <Section title="Evolução do saldo acumulado">
                 {balanceSeries.length === 0 ? (
-                  <Text style={styles.muted}>Registre consumo e gasto para gerar o gráfico.</Text>
+                  <Text style={styles.muted}>Registre alimentação e atividades para gerar o gráfico.</Text>
                 ) : (
                   <BalanceEvolutionChart data={balanceSeries} />
                 )}
@@ -459,7 +459,7 @@ export default function App() {
 
               <Section title={consumoTitle}>
                 {consumptionByFood.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum consumo registrado neste período.</Text>
+                  <Text style={styles.muted}>Nenhuma alimentação registrada neste período.</Text>
                 ) : (
                   consumptionByFood.map((item) => <ConsumptionFoodItem key={item.name} item={item} />)
                 )}
@@ -476,9 +476,9 @@ export default function App() {
           )}
 
           {activeTab === "meal" && (
-            <Section title="Registrar consumo">
+            <Section title="Registrar alimentação">
               <Input label="Data" value={mealForm.date} onChangeText={(date) => setMealForm({ ...mealForm, date })} />
-              <Text style={styles.label}>Item consumido</Text>
+              <Text style={styles.label}>Item da alimentação</Text>
               <View style={styles.selectorTabs}>
                 <TouchableOpacity
                   style={[styles.selectorTab, foodMode === "popular" && styles.selectorTabActive]}
@@ -510,7 +510,7 @@ export default function App() {
                   {visibleFoods.length === 0 ? (
                     <Text style={styles.muted}>
                       {foodMode === "popular"
-                        ? "Nenhum item usado ainda. Entre em Todos itens para lançar o primeiro consumo."
+                        ? "Nenhum item usado ainda. Entre em Todos itens para lançar a primeira alimentação."
                         : "Nenhum alimento encontrado nessa busca."}
                     </Text>
                   ) : visibleFoods.map((food) => (
@@ -535,10 +535,10 @@ export default function App() {
                 value={mealForm.grams}
                 onChangeText={(grams) => setMealForm({ ...mealForm, grams })}
               />
-              <Button label="Salvar consumo" onPress={addMeal} />
+              <Button label="Salvar alimentação" onPress={addMeal} />
               <View style={styles.inlineLog}>
                 <View style={styles.logSummary}>
-                  <Text style={styles.cardTitle}>Consumos lançados hoje</Text>
+                  <Text style={styles.cardTitle}>Alimentação lançada hoje</Text>
                   <View style={styles.macroSummary}>
                     <Text style={styles.macroSummaryText}>{selectedDateMealTotals.calories} kcal</Text>
                     <Text style={styles.macroSummaryText}>{selectedDateMealTotals.protein}g pro</Text>
@@ -546,7 +546,7 @@ export default function App() {
                   </View>
                 </View>
                 {selectedDateMeals.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum consumo lançado nesta data.</Text>
+                  <Text style={styles.muted}>Nenhuma alimentação lançada nesta data.</Text>
                 ) : (
                   selectedDateMeals.map((meal) => <MealItem key={meal.id} meal={meal} onDelete={() => deleteMeal(meal.id)} />)
                 )}
@@ -591,7 +591,7 @@ export default function App() {
           )}
 
           {activeTab === "expense" && (
-            <Section title="Registrar gasto diário">
+            <Section title="Registrar atividade">
               <Input label="Data" value={expenseForm.date} onChangeText={(date) => setExpenseForm({ ...expenseForm, date })} />
               <Text style={styles.label}>Atividade</Text>
               <View style={styles.foodList}>
@@ -641,13 +641,13 @@ export default function App() {
               <Button label="Salvar atividade" onPress={addExpense} />
               <View style={styles.inlineLog}>
                 <View style={styles.logSummary}>
-                  <Text style={styles.cardTitle}>Gastos lançados hoje</Text>
+                  <Text style={styles.cardTitle}>Atividades lançadas hoje</Text>
                   <View style={styles.macroSummary}>
                     <Text style={styles.macroSummaryText}>{selectedDateExpenseTotal} kcal</Text>
                   </View>
                 </View>
                 {selectedDateExpenses.length === 0 ? (
-                  <Text style={styles.muted}>Nenhum gasto lançado nesta data.</Text>
+                  <Text style={styles.muted}>Nenhuma atividade lançada nesta data.</Text>
                 ) : (
                   selectedDateExpenses.map((expense) => (
                     <ActivityItem key={expense.id} activity={expense} onDelete={() => deleteExpense(expense.id)} />
