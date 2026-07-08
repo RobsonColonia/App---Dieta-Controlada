@@ -143,5 +143,41 @@ export const foods = [
       { id: "gramas", name: "Gramas", grams: 1 },
       { id: "colher", name: "Colher", grams: 30 }
     ]
+  },
+  {
+    id: "bife-alcatra-coxao-mole",
+    name: "Bife de alcatra/coxão mole",
+    category: "Alimentação",
+    caloriesPer100g: 220,
+    proteinPer100g: 30,
+    carbsPer100g: 0,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "unidade", name: "Unidade", grams: 100 }
+    ]
+  },
+  {
+    id: "estrogonofe-carne-requeijao-creme-leite",
+    name: "Estrogonofe de carne com requeijão e creme de leite",
+    category: "Alimentação",
+    caloriesPer100g: 210,
+    proteinPer100g: 13,
+    carbsPer100g: 4,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
+  },
+  {
+    id: "estrogonofe-frango-requeijao-creme-leite",
+    name: "Estrogonofe de frango com requeijão e creme de leite",
+    category: "Alimentação",
+    caloriesPer100g: 190,
+    proteinPer100g: 15,
+    carbsPer100g: 4,
+    servings: [
+      { id: "gramas", name: "Gramas", grams: 1 },
+      { id: "colher", name: "Colher", grams: 30 }
+    ]
   }
 ];
