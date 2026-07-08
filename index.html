@@ -129,6 +129,33 @@
       color: #c7d5b9;
     }
 
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .hero-metrics .metric {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: none;
+      padding: 10px;
+    }
+
+    .hero-metrics .metric-label {
+      color: #c7d5b9;
+      font-size: 11px;
+    }
+
+    .hero-metrics .metric-value {
+      color: #ffffff;
+      font-size: 16px;
+      margin-top: 4px;
+      letter-spacing: -0.03em;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -387,31 +414,29 @@
               </div>
               <div class="balance">0 kcal</div>
               <div class="muted">Registre consumo e gasto para acompanhar seu saldo.</div>
+              <div class="hero-metrics">
+                <div class="metric">
+                  <div class="metric-label">Consumido</div>
+                  <div class="metric-value" id="metric-consumed">0 kcal</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Gasto</div>
+                  <div class="metric-value" id="metric-spent">0 kcal</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Proteínas</div>
+                  <div class="metric-value" id="metric-protein">0 g</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Carboidratos</div>
+                  <div class="metric-value" id="metric-carbs">0 g</div>
+                </div>
+              </div>
             </div>
 
             <div class="card" style="margin-top: 14px;">
               <h2>Evolução do saldo acumulado</h2>
               <div class="chart" id="balance-chart" aria-label="Gráfico de saldo diário e acumulado">
-              </div>
-              <div class="muted">Colunas = saldo do dia. Linha = saldo acumulado. Semana começa na segunda.</div>
-            </div>
-
-            <div class="grid" style="margin-top: 14px;">
-              <div class="metric">
-                <div class="metric-label">Consumido</div>
-                <div class="metric-value" id="metric-consumed">0 kcal</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Gasto</div>
-                <div class="metric-value" id="metric-spent">0 kcal</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Proteínas</div>
-                <div class="metric-value" id="metric-protein">0 g</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Carboidratos</div>
-                <div class="metric-value" id="metric-carbs">0 g</div>
               </div>
             </div>
 

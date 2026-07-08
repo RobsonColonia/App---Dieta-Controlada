@@ -412,27 +412,33 @@ export default function App() {
                   {formatSigned(balance)} kcal
                 </Text>
                 <Text style={styles.muted}>{balanceStatus}</Text>
+                <View style={styles.heroMetrics}>
+                  <View style={styles.heroMetric}>
+                    <Text style={styles.heroMetricTitle}>Consumido</Text>
+                    <Text style={styles.heroMetricValue}>{totals.calories} kcal</Text>
+                  </View>
+                  <View style={styles.heroMetric}>
+                    <Text style={styles.heroMetricTitle}>Gasto</Text>
+                    <Text style={styles.heroMetricValue}>{totals.spent} kcal</Text>
+                  </View>
+                  <View style={styles.heroMetric}>
+                    <Text style={styles.heroMetricTitle}>Proteínas</Text>
+                    <Text style={styles.heroMetricValue}>{totals.protein} g</Text>
+                  </View>
+                  <View style={styles.heroMetric}>
+                    <Text style={styles.heroMetricTitle}>Carboidratos</Text>
+                    <Text style={styles.heroMetricValue}>{totals.carbs} g</Text>
+                  </View>
+                </View>
               </View>
 
               <Section title="Evolução do saldo acumulado">
                 {balanceSeries.length === 0 ? (
                   <Text style={styles.muted}>Registre consumo e gasto para gerar o gráfico.</Text>
                 ) : (
-                  <>
-                    <BalanceEvolutionChart data={balanceSeries} />
-                    <Text style={styles.muted}>
-                      Colunas mostram o saldo do dia. A linha mostra o saldo acumulado.
-                    </Text>
-                  </>
+                  <BalanceEvolutionChart data={balanceSeries} />
                 )}
               </Section>
-
-              <View style={styles.grid}>
-                <Metric title="Consumido" value={`${totals.calories} kcal`} />
-                <Metric title="Gasto" value={`${totals.spent} kcal`} />
-                <Metric title="Proteínas" value={`${totals.protein} g`} />
-                <Metric title="Carboidratos" value={`${totals.carbs} g`} />
-              </View>
 
               <Section title={`Consumo de ${periodLabel}`}>
                 {consumptionByFood.length === 0 ? (
@@ -918,6 +924,30 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap",
     gap: 5,
     marginTop: 12
+  },
+  heroMetrics: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 14
+  },
+  heroMetric: {
+    width: "48%",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 10
+  },
+  heroMetricTitle: {
+    color: "#C7D5B9",
+    fontSize: 11
+  },
+  heroMetricValue: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "900",
+    marginTop: 4
   },
   periodButton: {
     backgroundColor: "#334923",
