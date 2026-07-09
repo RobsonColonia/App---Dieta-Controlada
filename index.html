@@ -533,6 +533,23 @@
       text-transform: uppercase;
     }
 
+    .meal-time-editor {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #8d8d92;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .meal-time-editor input {
+      width: 96px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 900;
+    }
+
     .recommendation-carousel {
       display: flex;
       gap: 14px;
@@ -1015,6 +1032,10 @@
               <div>
                 <span class="status-pill" id="meal-detail-status">Pendente</span>
               </div>
+              <div class="meal-time-editor">
+                <span>⏱ Horário</span>
+                <input id="meal-detail-time" type="time" />
+              </div>
               <div class="meal-detail-title">
                 <div>
                   <h2 id="meal-detail-title">Café da manhã</h2>
@@ -1064,6 +1085,7 @@
     const mealDetailTitle = document.getElementById("meal-detail-title");
     const mealDetailSubtitle = document.getElementById("meal-detail-subtitle");
     const mealDetailIcon = document.getElementById("meal-detail-icon");
+    const mealDetailTime = document.getElementById("meal-detail-time");
     const recommendationCarousel = document.getElementById("recommendation-carousel");
     const recommendationDots = document.getElementById("recommendation-dots");
     const mealDetailRegister = document.getElementById("meal-detail-register");
@@ -1138,11 +1160,11 @@
       { id: "inserir-manual", name: "Inserir manual", manualCalories: true }
     ];
     const mealTypes = [
-      { id: "cafe", name: "Café", icon: "☕" },
-      { id: "lanche-manha", name: "Lanche", icon: "🍏" },
-      { id: "almoco", name: "Almoço", icon: "🍲" },
-      { id: "lanche-tarde", name: "Lanche", icon: "🥪" },
-      { id: "jantar", name: "Jantar", icon: "🍽️" }
+      { id: "cafe", name: "Café", icon: "☕", defaultTime: "09:00" },
+      { id: "lanche-manha", name: "Lanche", icon: "🍏", defaultTime: "11:00" },
+      { id: "almoco", name: "Almoço", icon: "🍲", defaultTime: "13:00" },
+      { id: "lanche-tarde", name: "Lanche", icon: "🥪", defaultTime: "16:00" },
+      { id: "jantar", name: "Jantar", icon: "🍽️", defaultTime: "21:00" }
     ];
     const mealDetailLabels = {
       cafe: "Café da manhã",
@@ -1234,12 +1256,14 @@
       sex: "male",
       calorieTarget: ""
     };
+    const defaultMealTimes = Object.fromEntries(mealTypes.map((item) => [item.id, item.defaultTime]));
 
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
     appData = {
       meals: Array.isArray(appData.meals) ? appData.meals : [],
       expenses: Array.isArray(appData.expenses) ? appData.expenses : [],
       water: appData.water && typeof appData.water === "object" ? appData.water : {},
+      mealTimes: { ...defaultMealTimes, ...(appData.mealTimes || {}) },
       profile: { ...defaultProfile, ...(appData.profile || {}) }
     };
     let selectedFoodId = foods[0]?.id;
@@ -1319,7 +1343,8 @@
       mealProgressFill.style.setProperty("--width", `${percent}%`);
       mealProgressList.innerHTML = mealTypes.map((meal) => {
         const done = completed.has(meal.id);
-        return `<button type="button" class="meal-step ${done ? "done" : ""}" data-open-meal-detail="${meal.id}"><div class="meal-icon">${meal.icon}</div><div>${meal.name}</div></button>`;
+        const time = appData.mealTimes?.[meal.id] || meal.defaultTime;
+        return `<button type="button" class="meal-step ${done ? "done" : ""}" data-open-meal-detail="${meal.id}"><div class="meal-icon">${meal.icon}</div><div>${meal.name}</div><div class="muted">${time}</div></button>`;
       }).join("");
       mealProgressList.querySelectorAll("[data-open-meal-detail]").forEach((button) => {
         button.addEventListener("click", () => openMealDetail(button.dataset.openMealDetail));
@@ -1333,6 +1358,7 @@
       const alreadyDone = appData.meals.some((item) => item.date === todayISO() && item.mealType === mealType.id);
       mealDetailTitle.textContent = mealDetailLabels[mealType.id] || mealType.name;
       mealDetailIcon.textContent = mealType.icon;
+      mealDetailTime.value = appData.mealTimes?.[mealType.id] || mealType.defaultTime;
       mealDetailStatus.textContent = alreadyDone ? "Concluída" : "Pendente";
       mealDetailSubtitle.textContent = alreadyDone
         ? "Você já registrou essa refeição hoje"
@@ -1686,7 +1712,7 @@
         const portionLabel = item.quantity && item.servingName && item.servingName !== "Gramas"
           ? `${item.quantity} ${item.servingName.toLowerCase()} (${item.grams}g)`
           : `${item.grams}g`;
-        const mealTypeLabel = item.mealTypeName ? `${item.mealTypeName} • ` : "";
+        const mealTypeLabel = item.mealTypeName ? `${item.mealTypeName} ${item.mealTime || ""} • ` : "";
         return `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${mealTypeLabel}${portionLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="edit-button" data-edit-meal="${item.id}">Editar</button><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`;
       }).join("");
       mealLog.querySelectorAll("[data-edit-meal]").forEach((button) => {
@@ -1815,6 +1841,11 @@
     profileButton.addEventListener("click", () => openTab("perfil"));
     openMealTab.addEventListener("click", () => openTab("refeicao"));
     mealDetailBack.addEventListener("click", () => openTab("hoje"));
+    mealDetailTime.addEventListener("change", () => {
+      appData.mealTimes[currentMealDetail] = mealDetailTime.value || defaultMealTimes[currentMealDetail];
+      saveData();
+      renderMealsProgress();
+    });
     mealDetailRegister.addEventListener("click", () => {
       selectedMealType = currentMealDetail;
       renderMealTypeOptions();
@@ -1887,6 +1918,7 @@
         foodName: food.name,
         mealType: selectedMealType,
         mealTypeName: mealTypes.find((item) => item.id === selectedMealType)?.name || "Refeição",
+        mealTime: appData.mealTimes?.[selectedMealType] || defaultMealTimes[selectedMealType],
         grams,
         quantity,
         servingName: serving?.name || "Gramas",
