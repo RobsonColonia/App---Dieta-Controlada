@@ -400,6 +400,9 @@
     }
 
     .meal-step {
+      border: 0;
+      background: transparent;
+      font: inherit;
       display: grid;
       justify-items: center;
       gap: 8px;
@@ -473,6 +476,166 @@
       padding: 13px 8px;
       font-size: 15px;
       font-weight: 950;
+    }
+
+    .meal-detail-header {
+      display: grid;
+      gap: 22px;
+      padding: 8px 0 18px;
+    }
+
+    .back-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-button {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #e7e7ec;
+      border-radius: 50%;
+      background: #fff;
+      font-size: 30px;
+      line-height: 1;
+      box-shadow: 0 8px 18px rgba(36, 49, 25, 0.06);
+    }
+
+    .meal-detail-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .meal-detail-title h2 {
+      font-size: 42px;
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+    }
+
+    .meal-detail-icon {
+      font-size: 58px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      border-radius: 999px;
+      background: #e4f8e8;
+      color: #209b26;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .recommendation-carousel {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 8px 2px 12px;
+      scrollbar-width: none;
+    }
+
+    .recommendation-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .recommendation-card {
+      min-width: 86%;
+      scroll-snap-align: center;
+      border: 1.5px solid #209b26;
+      border-radius: 28px;
+      background: #fff;
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .recommendation-card.empty {
+      border: 2px dashed #209b26;
+      background: #eaf6ea;
+      min-height: 250px;
+      place-items: center;
+      text-align: center;
+    }
+
+    .recommendation-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .selected-pill {
+      border: 1.5px solid #209b26;
+      border-radius: 12px;
+      color: #209b26;
+      padding: 8px 12px;
+      font-weight: 950;
+    }
+
+    .kcal-pill {
+      background: #f6f8f4;
+      color: #209b26;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-weight: 950;
+    }
+
+    .recommended-item {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .recommended-item-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #f6f6f7;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+    }
+
+    .swap-icon {
+      color: #209b26;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .recipe-button {
+      border: 0;
+      border-radius: 999px;
+      background: #f2f2f4;
+      color: #8d8d92;
+      padding: 14px;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #e3e4e8;
+    }
+
+    .carousel-dot.active {
+      width: 34px;
+      background: #209b26;
     }
 
     h2 {
@@ -840,6 +1003,32 @@
             </div>
           </section>
 
+          <section id="refeicao-detalhe" class="hidden">
+            <div class="meal-detail-header">
+              <div class="back-row">
+                <button class="back-button" type="button" id="meal-detail-back">‹</button>
+                <div>
+                  <h2>Refeição</h2>
+                  <div class="muted">Modo visualização</div>
+                </div>
+              </div>
+              <div>
+                <span class="status-pill" id="meal-detail-status">Pendente</span>
+              </div>
+              <div class="meal-detail-title">
+                <div>
+                  <h2 id="meal-detail-title">Café da manhã</h2>
+                  <div class="muted" id="meal-detail-subtitle">Escolha uma opção ou registre manualmente</div>
+                </div>
+                <div class="meal-detail-icon" id="meal-detail-icon">☕</div>
+              </div>
+            </div>
+
+            <div class="recommendation-carousel" id="recommendation-carousel"></div>
+            <div class="carousel-dots" id="recommendation-dots"></div>
+            <button class="button" type="button" id="meal-detail-register" style="margin-top: 18px;">Registrar refeição +</button>
+          </section>
+
         </main>
   </div>
 
@@ -870,6 +1059,14 @@
     const waterCups = document.getElementById("water-cups");
     const addWaterQuick = document.getElementById("add-water-quick");
     const waterButtons = document.querySelectorAll("[data-water-add]");
+    const mealDetailBack = document.getElementById("meal-detail-back");
+    const mealDetailStatus = document.getElementById("meal-detail-status");
+    const mealDetailTitle = document.getElementById("meal-detail-title");
+    const mealDetailSubtitle = document.getElementById("meal-detail-subtitle");
+    const mealDetailIcon = document.getElementById("meal-detail-icon");
+    const recommendationCarousel = document.getElementById("recommendation-carousel");
+    const recommendationDots = document.getElementById("recommendation-dots");
+    const mealDetailRegister = document.getElementById("meal-detail-register");
     const consumoTitle = document.getElementById("consumo-title");
     const consumoResumo = document.getElementById("consumo-resumo");
     const gastoTitle = document.getElementById("gasto-title");
@@ -947,6 +1144,82 @@
       { id: "lanche-tarde", name: "Lanche", icon: "🥪" },
       { id: "jantar", name: "Jantar", icon: "🍽️" }
     ];
+    const mealDetailLabels = {
+      cafe: "Café da manhã",
+      "lanche-manha": "Lanche da manhã",
+      almoco: "Almoço",
+      "lanche-tarde": "Lanche da tarde",
+      jantar: "Jantar"
+    };
+    const mealRecommendations = {
+      cafe: [
+        {
+          kcal: 305,
+          items: [
+            { icon: "🍓", name: "Morango", amount: "180g" },
+            { icon: "🥛", name: "Iogurte desnatado", amount: "160 ml" },
+            { icon: "🍳", name: "Omelete", amount: "2 ovos" }
+          ]
+        },
+        {
+          kcal: 305,
+          items: [
+            { icon: "🥖", name: "Pão de forma", amount: "2 fatias" },
+            { icon: "🍊", name: "Laranja lima", amount: "1 unidade" },
+            { icon: "🥛", name: "Iogurte desnatado", amount: "160 ml" },
+            { icon: "🧀", name: "Queijo prato", amount: "1 fatia" }
+          ]
+        },
+        {
+          kcal: 305,
+          items: [
+            { icon: "🥖", name: "Pão francês", amount: "1 unidade" },
+            { icon: "🍌", name: "Banana prata", amount: "1 unidade" },
+            { icon: "🥛", name: "Iogurte desnatado", amount: "160 ml" },
+            { icon: "🥚", name: "Ovo mexido", amount: "1 unidade" }
+          ]
+        }
+      ],
+      "lanche-manha": [
+        {
+          kcal: 180,
+          items: [
+            { icon: "🍎", name: "Fruta", amount: "1 unidade" },
+            { icon: "🥛", name: "Iogurte", amount: "1 unidade" }
+          ]
+        }
+      ],
+      almoco: [
+        {
+          kcal: 520,
+          items: [
+            { icon: "🍚", name: "Arroz", amount: "4 colheres" },
+            { icon: "🥣", name: "Feijão", amount: "1 concha" },
+            { icon: "🥩", name: "Bife", amount: "1 unidade" },
+            { icon: "🍅", name: "Tomate", amount: "1 unidade" }
+          ]
+        }
+      ],
+      "lanche-tarde": [
+        {
+          kcal: 220,
+          items: [
+            { icon: "🍌", name: "Banana", amount: "1 unidade" },
+            { icon: "🥪", name: "Sanduíche simples", amount: "1 unidade" }
+          ]
+        }
+      ],
+      jantar: [
+        {
+          kcal: 480,
+          items: [
+            { icon: "🍝", name: "Massa", amount: "1 porção" },
+            { icon: "🍗", name: "Frango", amount: "1 porção" },
+            { icon: "🥗", name: "Salada", amount: "à vontade" }
+          ]
+        }
+      ]
+    };
 
     if (new URLSearchParams(window.location.search).get("clear") === "1") {
       localStorage.removeItem(storageKey);
@@ -976,6 +1249,7 @@
     let selectedTimeUnit = "minutes";
     let currentFoodMode = "popular";
     let currentPeriod = "hoje";
+    let currentMealDetail = mealTypes[0].id;
 
     mealDate.value = todayISO();
     expenseDate.value = todayISO();
@@ -1045,8 +1319,55 @@
       mealProgressFill.style.setProperty("--width", `${percent}%`);
       mealProgressList.innerHTML = mealTypes.map((meal) => {
         const done = completed.has(meal.id);
-        return `<div class="meal-step ${done ? "done" : ""}"><div class="meal-icon">${meal.icon}</div><div>${meal.name}</div></div>`;
+        return `<button type="button" class="meal-step ${done ? "done" : ""}" data-open-meal-detail="${meal.id}"><div class="meal-icon">${meal.icon}</div><div>${meal.name}</div></button>`;
       }).join("");
+      mealProgressList.querySelectorAll("[data-open-meal-detail]").forEach((button) => {
+        button.addEventListener("click", () => openMealDetail(button.dataset.openMealDetail));
+      });
+    }
+
+    function openMealDetail(mealTypeId) {
+      currentMealDetail = mealTypeId;
+      const mealType = mealTypes.find((item) => item.id === mealTypeId) || mealTypes[0];
+      selectedMealType = mealType.id;
+      const alreadyDone = appData.meals.some((item) => item.date === todayISO() && item.mealType === mealType.id);
+      mealDetailTitle.textContent = mealDetailLabels[mealType.id] || mealType.name;
+      mealDetailIcon.textContent = mealType.icon;
+      mealDetailStatus.textContent = alreadyDone ? "Concluída" : "Pendente";
+      mealDetailSubtitle.textContent = alreadyDone
+        ? "Você já registrou essa refeição hoje"
+        : "Escolha uma sugestão ou crie sua própria refeição";
+      const options = mealRecommendations[mealType.id] || [];
+      recommendationCarousel.innerHTML = [
+        ...options.map((option) => `
+          <div class="recommendation-card">
+            <div class="recommendation-head">
+              <span class="selected-pill">✓ Selecionada</span>
+              <span class="kcal-pill">${option.kcal} kcal</span>
+            </div>
+            ${option.items.map((item) => `
+              <div class="recommended-item">
+                <div class="recommended-item-icon">${item.icon}</div>
+                <div>
+                  <div class="meal-name">${item.name}</div>
+                  <div class="muted">${item.amount}</div>
+                </div>
+                <div class="swap-icon">⇄</div>
+              </div>
+            `).join("")}
+            <button class="recipe-button" type="button">🍴 Ver preparo</button>
+          </div>
+        `),
+        `<div class="recommendation-card empty">
+          <div>
+            <button class="avatar-button" type="button">+</button>
+            <h2 style="margin-top: 18px;">Criar nova opção</h2>
+            <div class="muted">Adicione sua própria refeição</div>
+          </div>
+        </div>`
+      ].join("");
+      recommendationDots.innerHTML = Array.from({ length: options.length + 1 }, (_, index) => `<span class="carousel-dot ${index === 0 ? "active" : ""}"></span>`).join("");
+      openTab("refeicao-detalhe");
     }
 
     function renderWater() {
@@ -1493,6 +1814,19 @@
 
     profileButton.addEventListener("click", () => openTab("perfil"));
     openMealTab.addEventListener("click", () => openTab("refeicao"));
+    mealDetailBack.addEventListener("click", () => openTab("hoje"));
+    mealDetailRegister.addEventListener("click", () => {
+      selectedMealType = currentMealDetail;
+      renderMealTypeOptions();
+      openTab("refeicao");
+    });
+    recommendationCarousel.addEventListener("click", (event) => {
+      if (event.target.closest(".recommendation-card.empty")) {
+        selectedMealType = currentMealDetail;
+        renderMealTypeOptions();
+        openTab("refeicao");
+      }
+    });
     addWaterQuick.addEventListener("click", () => addWater(250));
     waterButtons.forEach((button) => {
       button.addEventListener("click", () => addWater(Number(button.dataset.waterAdd)));
