@@ -391,6 +391,90 @@
       gap: 12px;
     }
 
+    .meal-progress-line {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .meal-step {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      color: #8d918a;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .meal-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f3f3f5;
+      border: 2px solid transparent;
+      font-size: 27px;
+      position: relative;
+    }
+
+    .meal-step.done .meal-icon {
+      background: #f0fbef;
+      border-color: #25a330;
+    }
+
+    .meal-step.done .meal-icon::after {
+      content: "✓";
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #dff5e0;
+      color: #25a330;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+    }
+
+    .water-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    .cup {
+      height: 46px;
+      border-radius: 0 0 10px 10px;
+      background: #f1f1f3;
+      opacity: 0.8;
+    }
+
+    .cup.filled {
+      background: #dce9ff;
+      border: 1px solid #9ab7ee;
+    }
+
+    .water-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .water-button {
+      border: 1px solid #e1e3e8;
+      background: #fff;
+      color: #3d68ad;
+      border-radius: 16px;
+      padding: 13px 8px;
+      font-size: 15px;
+      font-weight: 950;
+    }
+
     h2 {
       margin: 0;
       font-size: 18px;
@@ -619,6 +703,34 @@
             </div>
 
             <div class="card" style="margin-top: 14px;">
+              <h2>Refeições</h2>
+              <div class="muted">Progresso diário</div>
+              <div class="progress-row">
+                <div class="progress-row-head"><span>Concluídas</span><strong id="meal-progress-count">0/5</strong></div>
+                <div class="progress-track"><div class="progress-fill" id="meal-progress-fill"></div></div>
+              </div>
+              <div class="meal-progress-line" id="meal-progress-list"></div>
+              <button class="button" type="button" id="open-meal-tab">Registrar refeição +</button>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <div class="log-summary">
+                <div>
+                  <h2>Hidratação</h2>
+                  <div><span class="summary-number" id="water-total">0</span> <span class="muted">ml</span></div>
+                </div>
+                <button class="avatar-button" type="button" id="add-water-quick" aria-label="Adicionar água">+</button>
+              </div>
+              <div class="water-grid" id="water-cups"></div>
+              <div class="water-actions">
+                <button class="water-button" type="button" data-water-add="250">+250ml</button>
+                <button class="water-button" type="button" data-water-add="500">+500ml</button>
+                <button class="water-button" type="button" data-water-add="1000">+1L</button>
+              </div>
+              <div class="muted">Meta diária: <strong id="water-goal">3000 ml</strong></div>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
               <h2>Evolução do saldo acumulado</h2>
               <div class="period-filter">
                 <span class="period-button active" data-period="hoje">Hoje</span>
@@ -646,6 +758,10 @@
             <div class="card">
               <h2>Registrar alimentação</h2>
               <label>Data <input id="meal-date" /></label>
+              <div>
+                <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Refeição</div>
+                <div class="selector-tabs" id="meal-type-options"></div>
+              </div>
               <div>
                 <div class="metric-label" style="margin-bottom: 8px; font-weight: 800;">Item da alimentação</div>
                 <div class="selector-tabs">
@@ -745,6 +861,15 @@
     const spentFill = document.getElementById("spent-fill");
     const remainingKcal = document.getElementById("remaining-kcal");
     const targetKcal = document.getElementById("target-kcal");
+    const mealProgressCount = document.getElementById("meal-progress-count");
+    const mealProgressFill = document.getElementById("meal-progress-fill");
+    const mealProgressList = document.getElementById("meal-progress-list");
+    const openMealTab = document.getElementById("open-meal-tab");
+    const waterTotal = document.getElementById("water-total");
+    const waterGoal = document.getElementById("water-goal");
+    const waterCups = document.getElementById("water-cups");
+    const addWaterQuick = document.getElementById("add-water-quick");
+    const waterButtons = document.querySelectorAll("[data-water-add]");
     const consumoTitle = document.getElementById("consumo-title");
     const consumoResumo = document.getElementById("consumo-resumo");
     const gastoTitle = document.getElementById("gasto-title");
@@ -755,6 +880,7 @@
     const metricCarbs = document.getElementById("metric-carbs");
     const mealDate = document.getElementById("meal-date");
     const mealGrams = document.getElementById("meal-grams");
+    const mealTypeOptions = document.getElementById("meal-type-options");
     const saveConsumption = document.getElementById("save-consumption");
     const mealLogTitle = document.getElementById("meal-log-title");
     const mealLogTotal = document.getElementById("meal-log-total");
@@ -814,6 +940,13 @@
       { id: "bicicleta", name: "Bicicleta", caloriesPerHour: 300 },
       { id: "inserir-manual", name: "Inserir manual", manualCalories: true }
     ];
+    const mealTypes = [
+      { id: "cafe", name: "Café", icon: "☕" },
+      { id: "lanche-manha", name: "Lanche", icon: "🍏" },
+      { id: "almoco", name: "Almoço", icon: "🍲" },
+      { id: "lanche-tarde", name: "Lanche", icon: "🥪" },
+      { id: "jantar", name: "Jantar", icon: "🍽️" }
+    ];
 
     if (new URLSearchParams(window.location.search).get("clear") === "1") {
       localStorage.removeItem(storageKey);
@@ -833,10 +966,12 @@
     appData = {
       meals: Array.isArray(appData.meals) ? appData.meals : [],
       expenses: Array.isArray(appData.expenses) ? appData.expenses : [],
+      water: appData.water && typeof appData.water === "object" ? appData.water : {},
       profile: { ...defaultProfile, ...(appData.profile || {}) }
     };
     let selectedFoodId = foods[0]?.id;
     let selectedServingId = "gramas";
+    let selectedMealType = mealTypes[0].id;
     let selectedActivityId = activityPresets[0].id;
     let selectedTimeUnit = "minutes";
     let currentFoodMode = "popular";
@@ -882,6 +1017,53 @@
       profileBasalInfo.textContent = basal
         ? `Gasto basal estimado: ${basal} kcal/dia. Meta usada: ${target} kcal/dia.`
         : "Informe peso, altura e idade para estimar o gasto basal.";
+    }
+
+    function waterTarget() {
+      const weight = Number(String(appData.profile.weightKg).replace(",", ".")) || 0;
+      return weight ? Math.round(weight * 35) : 3000;
+    }
+
+    function renderMealTypeOptions() {
+      mealTypeOptions.innerHTML = mealTypes
+        .map((item) => `<button type="button" data-meal-type="${item.id}" class="selector-tab ${item.id === selectedMealType ? "active" : ""}">${item.icon} ${item.name}</button>`)
+        .join("");
+      mealTypeOptions.querySelectorAll("[data-meal-type]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedMealType = button.dataset.mealType;
+          renderMealTypeOptions();
+        });
+      });
+    }
+
+    function renderMealsProgress() {
+      const todayMeals = appData.meals.filter((item) => item.date === todayISO());
+      const completed = new Set(todayMeals.map((item) => item.mealType).filter(Boolean));
+      const count = completed.size;
+      const percent = Math.round((count / mealTypes.length) * 100);
+      mealProgressCount.textContent = `${count}/${mealTypes.length}`;
+      mealProgressFill.style.setProperty("--width", `${percent}%`);
+      mealProgressList.innerHTML = mealTypes.map((meal) => {
+        const done = completed.has(meal.id);
+        return `<div class="meal-step ${done ? "done" : ""}"><div class="meal-icon">${meal.icon}</div><div>${meal.name}</div></div>`;
+      }).join("");
+    }
+
+    function renderWater() {
+      const today = todayISO();
+      const total = Number(appData.water?.[today]) || 0;
+      const target = waterTarget();
+      const filled = Math.min(12, Math.round((total / Math.max(target, 1)) * 12));
+      waterTotal.textContent = total.toLocaleString("pt-BR");
+      waterGoal.textContent = `${target.toLocaleString("pt-BR")} ml`;
+      waterCups.innerHTML = Array.from({ length: 12 }, (_, index) => `<div class="cup ${index < filled ? "filled" : ""}"></div>`).join("");
+    }
+
+    function addWater(amount) {
+      const today = todayISO();
+      appData.water[today] = (Number(appData.water[today]) || 0) + amount;
+      saveData();
+      renderWater();
     }
 
     function periodStart(period) {
@@ -1183,7 +1365,8 @@
         const portionLabel = item.quantity && item.servingName && item.servingName !== "Gramas"
           ? `${item.quantity} ${item.servingName.toLowerCase()} (${item.grams}g)`
           : `${item.grams}g`;
-        return `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${portionLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="edit-button" data-edit-meal="${item.id}">Editar</button><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`;
+        const mealTypeLabel = item.mealTypeName ? `${item.mealTypeName} • ` : "";
+        return `<div class="meal"><div><div class="meal-name">${item.foodName}</div><div class="muted">${mealTypeLabel}${portionLabel}</div></div><div class="macro-summary"><div>${item.calories} kcal</div><div>${item.protein}g pro</div><div>${item.carbs}g carb</div><button class="edit-button" data-edit-meal="${item.id}">Editar</button><button class="delete-button" data-delete-meal="${item.id}">Excluir</button></div></div>`;
       }).join("");
       mealLog.querySelectorAll("[data-edit-meal]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -1193,6 +1376,7 @@
           const food = foods.find((item) => item.id === meal.foodId);
           const servings = servingsForFood(food);
           selectedFoodId = meal.foodId;
+          selectedMealType = meal.mealType || mealTypes[0].id;
           selectedServingId =
             meal.servingId ||
             servings.find((item) => item.name === meal.servingName)?.id ||
@@ -1282,6 +1466,9 @@
     function renderAll() {
       renderProfile();
       renderTotals("hoje");
+      renderMealsProgress();
+      renderWater();
+      renderMealTypeOptions();
       renderChart(currentPeriod);
       renderConsumption(currentPeriod);
       renderExpenses(currentPeriod);
@@ -1305,6 +1492,11 @@
     }
 
     profileButton.addEventListener("click", () => openTab("perfil"));
+    openMealTab.addEventListener("click", () => openTab("refeicao"));
+    addWaterQuick.addEventListener("click", () => addWater(250));
+    waterButtons.forEach((button) => {
+      button.addEventListener("click", () => addWater(Number(button.dataset.waterAdd)));
+    });
 
     saveProfile.addEventListener("click", () => {
       appData.profile = {
@@ -1359,6 +1551,8 @@
         date: mealDate.value || todayISO(),
         foodId: food.id,
         foodName: food.name,
+        mealType: selectedMealType,
+        mealTypeName: mealTypes.find((item) => item.id === selectedMealType)?.name || "Refeição",
         grams,
         quantity,
         servingName: serving?.name || "Gramas",
