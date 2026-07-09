@@ -825,7 +825,7 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     #hoje {
@@ -968,6 +968,7 @@
                 <button class="water-button" type="button" data-water-add="500">+500ml</button>
                 <button class="water-button" type="button" data-water-add="1000">+1L</button>
               </div>
+              <button class="water-button" type="button" id="remove-water" style="color: #d94b4b;">−250ml</button>
               <div class="muted">Meta diária: <strong id="water-goal">3000 ml</strong></div>
             </div>
 
@@ -1140,6 +1141,7 @@
     const waterGoal = document.getElementById("water-goal");
     const waterCups = document.getElementById("water-cups");
     const addWaterQuick = document.getElementById("add-water-quick");
+    const removeWater = document.getElementById("remove-water");
     const waterButtons = document.querySelectorAll("[data-water-add]");
     const mealDetailBack = document.getElementById("meal-detail-back");
     const mealDetailStatus = document.getElementById("meal-detail-status");
@@ -1472,15 +1474,16 @@
       const today = todayISO();
       const total = Number(appData.water?.[today]) || 0;
       const target = waterTarget();
-      const filled = Math.min(12, Math.round((total / Math.max(target, 1)) * 12));
+      const cupCount = Math.max(12, Math.ceil(target / 250));
+      const filled = Math.min(cupCount, Math.floor(total / 250));
       waterTotal.textContent = total.toLocaleString("pt-BR");
       waterGoal.textContent = `${target.toLocaleString("pt-BR")} ml`;
-      waterCups.innerHTML = Array.from({ length: 12 }, (_, index) => `<div class="cup ${index < filled ? "filled" : ""}"></div>`).join("");
+      waterCups.innerHTML = Array.from({ length: cupCount }, (_, index) => `<div class="cup ${index < filled ? "filled" : ""}"></div>`).join("");
     }
 
     function addWater(amount) {
       const today = todayISO();
-      appData.water[today] = (Number(appData.water[today]) || 0) + amount;
+      appData.water[today] = Math.max(0, (Number(appData.water[today]) || 0) + amount);
       saveData();
       renderWater();
     }
@@ -1908,6 +1911,8 @@
       tabs.forEach((item) => item.classList.toggle("active", item.dataset.tab === tabName));
       sections.forEach((section) => section.classList.add("hidden"));
       document.getElementById(tabName).classList.remove("hidden");
+      document.querySelector(".screen")?.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     profileButton.addEventListener("click", () => openTab("perfil"));
@@ -1931,6 +1936,7 @@
       }
     });
     addWaterQuick.addEventListener("click", () => addWater(250));
+    removeWater.addEventListener("click", () => addWater(-250));
     waterButtons.forEach((button) => {
       button.addEventListener("click", () => addWater(Number(button.dataset.waterAdd)));
     });
