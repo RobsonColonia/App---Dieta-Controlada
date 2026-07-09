@@ -484,6 +484,13 @@
       padding: 8px 0 18px;
     }
 
+    #refeicao-detalhe {
+      width: 100%;
+      max-width: 390px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
     .back-row {
       display: flex;
       align-items: center;
@@ -555,7 +562,7 @@
       gap: 14px;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      padding: 8px 2px 12px;
+      padding: 8px 6px 12px;
       scrollbar-width: none;
     }
 
@@ -564,12 +571,12 @@
     }
 
     .recommendation-card {
-      min-width: 86%;
+      min-width: calc(100% - 28px);
       scroll-snap-align: center;
       border: 1.5px solid #209b26;
       border-radius: 28px;
       background: #fff;
-      padding: 22px;
+      padding: 20px;
       display: grid;
       gap: 18px;
     }
@@ -1995,4 +2002,3 @@
   </script>
 </body>
 </html>
-
