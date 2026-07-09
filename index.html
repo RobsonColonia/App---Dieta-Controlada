@@ -80,7 +80,7 @@
 
     .tabs {
       display: flex;
-      gap: 5px;
+      gap: 0;
       position: fixed;
       bottom: 12px;
       left: 50%;
@@ -89,27 +89,41 @@
       width: calc(100% - 32px);
       max-width: 448px;
       margin: 0;
-      padding: 8px;
+      padding: 9px 12px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.96);
       box-shadow: 0 12px 28px rgba(36, 49, 25, 0.12);
+      border: 1px solid #e3e4e8;
     }
 
     .tab {
       border: 0;
       flex: 1;
       border-radius: 999px;
-      padding: 9px 5px;
-      background: #e6ecd8;
-      color: #466b2d;
+      padding: 4px 5px;
+      background: transparent;
+      color: #8d918a;
       font-weight: 800;
-      font-size: 10px;
+      font-size: 11px;
       white-space: nowrap;
+      display: grid;
+      justify-items: center;
+      gap: 2px;
     }
 
     .tab.active {
-      background: #466b2d;
-      color: #fff;
+      background: transparent;
+      color: #209b26;
+    }
+
+    .tab-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .tab-label {
+      font-size: 11px;
+      line-height: 1.1;
     }
 
     main {
@@ -885,10 +899,18 @@
         </header>
 
         <nav class="tabs" aria-label="Abas do app">
-          <button class="tab active" data-tab="hoje">Resumo</button>
-          <button class="tab" data-tab="refeicao">Alimentação</button>
-          <button class="tab" data-tab="gasto">Atividades</button>
-          <button class="tab" data-tab="perfil">Perfil</button>
+          <button class="tab active" data-tab="hoje" aria-label="Home">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">Home</span>
+          </button>
+          <button class="tab" data-tab="refeicao" aria-label="Dieta">
+            <span class="tab-icon">🍴</span>
+            <span class="tab-label">Dieta</span>
+          </button>
+          <button class="tab" data-tab="gasto" aria-label="Treino">
+            <span class="tab-icon">🏋️</span>
+            <span class="tab-label">Treino</span>
+          </button>
         </nav>
 
         <main>
