@@ -292,11 +292,11 @@
     .chart-bar {
       width: 72%;
       border-radius: 999px;
-      background: #466b2d;
+      background: #9fdc8a;
     }
 
     .chart-bar.positive {
-      background: #ff6b6b;
+      background: #ff8f8f;
     }
 
     .chart-date {
@@ -511,6 +511,25 @@
       max-width: 390px;
       margin: 0 auto;
       overflow: hidden;
+      padding-bottom: 92px;
+    }
+
+    #refeicao-detalhe #meal-detail-register {
+      position: fixed;
+      left: 50%;
+      bottom: 86px;
+      transform: translateX(-50%);
+      width: calc(100% - 42px);
+      max-width: 420px;
+      z-index: 11;
+      margin-top: 0 !important;
+      border-radius: 999px;
+      padding: 18px 16px;
+      box-shadow: 0 12px 28px rgba(36, 49, 25, 0.18);
+    }
+
+    #refeicao-detalhe #meal-detail-register.hidden {
+      display: none !important;
     }
 
     .back-row {
@@ -1409,7 +1428,7 @@
     let currentFoodMode = "popular";
     let currentPeriod = "hoje";
     let currentMealDetail = mealTypes[0].id;
-    let selectedRecommendationIndex = 0;
+    let selectedRecommendationIndex = null;
 
     mealDate.value = todayISO();
     expenseDate.value = todayISO();
@@ -1489,7 +1508,8 @@
 
     function openMealDetail(mealTypeId) {
       currentMealDetail = mealTypeId;
-      selectedRecommendationIndex = 0;
+      selectedRecommendationIndex = null;
+      mealDetailRegister.classList.add("hidden");
       const mealType = mealTypes.find((item) => item.id === mealTypeId) || mealTypes[0];
       selectedMealType = mealType.id;
       const alreadyDone = appData.meals.some((item) => item.date === todayISO() && item.mealType === mealType.id);
@@ -1503,7 +1523,7 @@
       const options = mealRecommendations[mealType.id] || [];
       recommendationCarousel.innerHTML = [
         ...options.map((option, index) => `
-          <div class="recommendation-card ${index === selectedRecommendationIndex ? "selected" : ""}" data-recommendation-index="${index}">
+          <div class="recommendation-card" data-recommendation-index="${index}">
             <div class="recommendation-head">
               <span class="selected-pill">✓ Selecionada</span>
               <span class="kcal-pill">${option.kcal} kcal</span>
@@ -1541,6 +1561,7 @@
       recommendationCarousel.querySelectorAll("[data-recommendation-index]").forEach((card) => {
         card.classList.toggle("selected", Number(card.dataset.recommendationIndex) === selectedRecommendationIndex);
       });
+      mealDetailRegister.classList.remove("hidden");
     }
 
     function registerSelectedRecommendation() {
@@ -1780,45 +1801,20 @@
 
     function renderChart(period = currentPeriod) {
       const chartPeriod = period === "hoje" ? "total" : period;
-      let running = 0;
-      const data = seriesForPeriod(chartPeriod).map((item) => {
-        running = round(running + item.daily);
-        return { ...item, cumulative: running };
-      });
+      const data = seriesForPeriod(chartPeriod);
       if (data.length === 0) {
         chart.innerHTML = '<div class="muted">Registre alimentação e atividades para gerar o gráfico.</div>';
         return;
       }
-      const values = data.flatMap((item) => [item.daily, item.cumulative, 0]);
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const range = Math.max(max - min, 1);
-      const svgWidth = 300;
-      const svgHeight = 128;
+      const maxAbs = Math.max(...data.map((item) => Math.abs(item.daily)), 1);
       const barAreaHeight = 92;
-      const xStep = data.length > 1 ? svgWidth / (data.length - 1) : svgWidth;
-      const yFromValue = (value) => svgHeight - 20 - ((value - min) / range) * (svgHeight - 28);
-      const points = data.map((item, index) => ({
-        x: data.length > 1 ? index * xStep : svgWidth / 2,
-        y: yFromValue(item.cumulative),
-        value: item.cumulative
-      }));
-      const segments = points.slice(1).map((point, index) => {
-        const previous = points[index];
-        const color = point.value > previous.value ? "#ff6b6b" : "#466b2d";
-        return `<line x1="${previous.x}" y1="${previous.y}" x2="${point.x}" y2="${point.y}" stroke="${color}" stroke-width="3" stroke-linecap="round"></line>`;
-      }).join("");
-      const circles = data.map((item, index) => {
-        const fill = item.cumulative > 0 ? "#ff6b6b" : "#466b2d";
-        return `<circle cx="${points[index].x}" cy="${points[index].y}" r="3.5" fill="${fill}"></circle>`;
-      }).join("");
       const bars = data.map((item) => {
-        const height = Math.max(8, Math.abs(item.daily) / range * barAreaHeight);
+        const height = Math.max(8, Math.abs(item.daily) / maxAbs * barAreaHeight);
         const positive = item.daily > 0;
         return `<div class="chart-col"><div class="chart-value ${positive ? "positive" : ""}">${formatSigned(item.daily)}</div><div class="chart-bar ${positive ? "positive" : ""}" style="height: ${height}px;"></div><div class="chart-date">${item.date}</div></div>`;
       }).join("");
 
-      chart.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none"><line x1="0" y1="${yFromValue(0)}" x2="${svgWidth}" y2="${yFromValue(0)}" stroke="#e2e9d6" stroke-width="1"></line>${segments}${circles}</svg>${bars}`;
+      chart.innerHTML = bars;
     }
 
     function periodMeals(period = currentPeriod) {
