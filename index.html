@@ -692,6 +692,7 @@
 
     .meal {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       gap: 12px;
       align-items: center;
@@ -701,6 +702,8 @@
 
     .meal-name {
       font-weight: 900;
+      min-width: 0;
+      flex: 1;
     }
 
     .meal-kcal {
@@ -721,6 +724,7 @@
 
     .log-summary {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       gap: 12px;
       align-items: center;
