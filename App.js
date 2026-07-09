@@ -986,18 +986,21 @@ const styles = StyleSheet.create({
   },
   heroPeriods: {
     flexDirection: "row",
-    flexWrap: "nowrap",
-    gap: 5,
+    flexWrap: "wrap",
+    gap: 6,
     marginTop: 12
   },
   heroMetrics: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "space-between",
     gap: 8,
     marginTop: 14
   },
   heroMetric: {
-    width: "48%",
+    flexBasis: "48%",
+    maxWidth: "48%",
+    minWidth: 0,
     backgroundColor: "rgba(255,255,255,0.08)",
     borderColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
@@ -1018,7 +1021,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#334923",
     borderRadius: 999,
     paddingHorizontal: 7,
-    paddingVertical: 7
+    paddingVertical: 7,
+    marginBottom: 6,
+    flexShrink: 1
   },
   periodButtonActive: {
     backgroundColor: "#9FE870"
@@ -1093,8 +1098,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   selectorTab: {
-    flex: 1,
-    minWidth: 92,
+    flexGrow: 1,
+    flexBasis: "48%",
+    minWidth: 0,
     borderColor: "#D8E2C6",
     borderWidth: 1,
     borderRadius: 14,
