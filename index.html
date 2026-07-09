@@ -1007,6 +1007,7 @@
                 <div class="progress-track"><div class="progress-fill" id="meal-progress-fill"></div></div>
               </div>
               <div class="meal-progress-line" id="meal-progress-list"></div>
+              <div class="muted" id="open-meal-tab">Escolha a refeição a registrar</div>
             </div>
 
             <div class="card" style="margin-top: 14px;">
@@ -1191,7 +1192,6 @@
     const mealProgressCount = document.getElementById("meal-progress-count");
     const mealProgressFill = document.getElementById("meal-progress-fill");
     const mealProgressList = document.getElementById("meal-progress-list");
-    const openMealTab = document.getElementById("open-meal-tab");
     const waterTotal = document.getElementById("water-total");
     const waterGoal = document.getElementById("water-goal");
     const waterCups = document.getElementById("water-cups");
@@ -2073,7 +2073,6 @@
     }
 
     profileButton.addEventListener("click", () => openTab("perfil"));
-    openMealTab.addEventListener("click", () => openTab("refeicao"));
     mealDetailBack.addEventListener("click", () => openTab("hoje"));
     mealDetailTime.addEventListener("change", () => {
       appData.mealTimes[currentMealDetail] = mealDetailTime.value || defaultMealTimes[currentMealDetail];
