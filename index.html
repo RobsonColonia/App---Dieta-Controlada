@@ -31,14 +31,42 @@
     }
 
     header {
-      padding: max(12px, env(safe-area-inset-top)) 20px 8px;
+      padding: max(22px, env(safe-area-inset-top)) 22px 14px;
     }
 
     h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 32px;
       letter-spacing: -0.05em;
       line-height: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .profile-meta {
+      color: #9ba19a;
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .avatar-button {
+      width: 64px;
+      height: 64px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #466b2d, #9fe870);
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 950;
+      box-shadow: 0 12px 24px rgba(36, 49, 25, 0.18);
     }
 
     .subtitle {
@@ -50,7 +78,18 @@
     .tabs {
       display: flex;
       gap: 5px;
-      padding: 0 16px 12px;
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      width: calc(100% - 32px);
+      max-width: 448px;
+      margin: 0;
+      padding: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 12px 28px rgba(36, 49, 25, 0.12);
     }
 
     .tab {
@@ -71,27 +110,29 @@
     }
 
     main {
-      padding: 0 16px 26px;
+      padding: 0 16px 92px;
       display: grid;
       gap: 14px;
     }
 
     .hero {
-      background: #243119;
-      color: #fff;
-      border-radius: 24px;
-      padding: 22px;
+      background: #fff;
+      color: #111;
+      border-radius: 28px;
+      padding: 28px 22px;
+      box-shadow: 0 10px 24px rgba(36, 49, 25, 0.06);
     }
 
     .hero .title {
-      color: #dce9cf;
-      font-size: 15px;
-      font-weight: 800;
+      color: #111;
+      font-size: 28px;
+      font-weight: 950;
+      letter-spacing: -0.05em;
     }
 
     .balance {
-      color: #9fe870;
-      font-size: 46px;
+      color: #111;
+      font-size: 40px;
       line-height: 1;
       margin: 11px 0 9px;
       font-weight: 950;
@@ -126,7 +167,7 @@
     }
 
     .hero .muted {
-      color: #c7d5b9;
+      color: #909090;
     }
 
     .hero-metrics {
@@ -137,20 +178,20 @@
     }
 
     .hero-metrics .metric {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #f6f6f6;
+      border: 1px solid #eeeeee;
       border-radius: 16px;
       box-shadow: none;
       padding: 10px;
     }
 
     .hero-metrics .metric-label {
-      color: #c7d5b9;
+      color: #888;
       font-size: 11px;
     }
 
     .hero-metrics .metric-value {
-      color: #ffffff;
+      color: #111;
       font-size: 16px;
       margin-top: 4px;
       letter-spacing: -0.03em;
@@ -244,6 +285,108 @@
 
     .card {
       padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .goal-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: #fff;
+      border-radius: 999px;
+      padding: 18px 22px;
+      font-size: 17px;
+      font-weight: 950;
+      box-shadow: 0 10px 24px rgba(36, 49, 25, 0.05);
+    }
+
+    .summary-body {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .progress-ring {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(#209b26 var(--progress), #dff2df 0);
+      position: relative;
+    }
+
+    .progress-ring::after {
+      content: "";
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+    }
+
+    .progress-ring-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      line-height: 1.1;
+    }
+
+    .progress-ring-content strong {
+      font-size: 34px;
+      letter-spacing: -0.06em;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .progress-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .progress-row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 16px;
+    }
+
+    .progress-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #e4e4e8;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: var(--width, 0%);
+      border-radius: inherit;
+      background: #209b26;
+    }
+
+    .summary-footer {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 20px;
+      margin-top: 10px;
+    }
+
+    .summary-number {
+      font-size: 34px;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+    }
+
+    .profile-card {
       display: grid;
       gap: 12px;
     }
@@ -404,19 +547,79 @@
 <body>
   <div class="screen">
         <header>
-          <h1>Dieta Controlada</h1>
+          <div class="topbar">
+            <div>
+              <h1 id="greeting-title">Olá, Robson</h1>
+              <div class="profile-meta">
+                <span id="profile-weight-label">-- kg</span>
+                <span id="profile-height-label">-- m</span>
+              </div>
+            </div>
+            <button class="avatar-button" id="profile-button" type="button" aria-label="Abrir perfil">R</button>
+          </div>
         </header>
 
         <nav class="tabs" aria-label="Abas do app">
           <button class="tab active" data-tab="hoje">Resumo</button>
           <button class="tab" data-tab="refeicao">Alimentação</button>
           <button class="tab" data-tab="gasto">Atividades</button>
+          <button class="tab" data-tab="perfil">Perfil</button>
         </nav>
 
         <main>
           <section id="hoje">
+            <div class="goal-banner">
+              <span>🔥 Meta mínima do dia: <span id="goal-banner-value">0 kcal</span></span>
+              <span>→</span>
+            </div>
+
             <div class="hero">
-              <div class="title" id="saldo-title">Saldo de hoje</div>
+              <div>
+                <div class="title">Resumo diário</div>
+                <div class="muted">Metas do dia</div>
+              </div>
+              <div class="summary-body">
+                <div class="progress-ring" id="calorie-ring" style="--progress: 0%;">
+                  <div class="progress-ring-content">
+                    <strong id="goal-percent">0%</strong>
+                    <span class="muted">da meta</span>
+                  </div>
+                </div>
+                <div class="progress-list">
+                  <div class="progress-row">
+                    <div class="progress-row-head"><span>Calorias</span><strong id="metric-consumed">0 kcal</strong></div>
+                    <div class="progress-track"><div class="progress-fill" id="calorie-fill"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-row-head"><span>Proteínas</span><strong id="metric-protein">0 g</strong></div>
+                    <div class="progress-track"><div class="progress-fill" id="protein-fill"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-row-head"><span>Carboidratos</span><strong id="metric-carbs">0 g</strong></div>
+                    <div class="progress-track"><div class="progress-fill" id="carbs-fill"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-row-head"><span>Kcal gastas</span><strong id="metric-spent">0 kcal</strong></div>
+                    <div class="progress-track"><div class="progress-fill" id="spent-fill"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="summary-footer">
+                <div>
+                  <div class="muted">Restante</div>
+                  <div class="summary-number" id="remaining-kcal">0</div>
+                  <div class="muted">kcal para hoje</div>
+                </div>
+                <div style="text-align:right;">
+                  <div class="muted">Meta</div>
+                  <div class="summary-number" id="target-kcal">0</div>
+                  <div class="muted">kcal por dia</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 14px;">
+              <h2>Evolução do saldo acumulado</h2>
               <div class="period-filter">
                 <span class="period-button active" data-period="hoje">Hoje</span>
                 <span class="period-button" data-period="semana">Semana</span>
@@ -424,30 +627,6 @@
                 <span class="period-button" data-period="mês">Mês</span>
                 <span class="period-button" data-period="total">Total</span>
               </div>
-              <div class="balance">0 kcal</div>
-              <div class="muted">Registre alimentação e atividades para acompanhar seu saldo.</div>
-              <div class="hero-metrics">
-                <div class="metric">
-                  <div class="metric-label">Alimentação</div>
-                  <div class="metric-value" id="metric-consumed">0 kcal</div>
-                </div>
-                <div class="metric">
-                  <div class="metric-label">Atividades</div>
-                  <div class="metric-value" id="metric-spent">0 kcal</div>
-                </div>
-                <div class="metric">
-                  <div class="metric-label">Proteínas</div>
-                  <div class="metric-value" id="metric-protein">0 g</div>
-                </div>
-                <div class="metric">
-                  <div class="metric-label">Carboidratos</div>
-                  <div class="metric-value" id="metric-carbs">0 g</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" style="margin-top: 14px;">
-              <h2>Evolução do saldo acumulado</h2>
               <div class="chart" id="balance-chart" aria-label="Gráfico de saldo diário e acumulado">
               </div>
             </div>
@@ -525,6 +704,26 @@
             </div>
           </section>
 
+          <section id="perfil" class="hidden">
+            <div class="card profile-card">
+              <h2>Perfil e meta</h2>
+              <div class="muted">Esses dados ajudam a estimar gasto basal e uma meta mínima diária.</div>
+              <label>Nome <input id="profile-name" placeholder="Ex: Robson" /></label>
+              <label>Peso atual em kg <input id="profile-weight" inputmode="decimal" placeholder="Ex: 88.4" /></label>
+              <label>Altura em cm <input id="profile-height" inputmode="decimal" placeholder="Ex: 168" /></label>
+              <label>Idade <input id="profile-age" inputmode="numeric" placeholder="Ex: 35" /></label>
+              <label>Sexo
+                <select id="profile-sex">
+                  <option value="male">Masculino</option>
+                  <option value="female">Feminino</option>
+                </select>
+              </label>
+              <label>Meta mínima diária em kcal <input id="profile-target" inputmode="decimal" placeholder="Calculada automaticamente" /></label>
+              <button class="button" id="save-profile">Salvar perfil</button>
+              <div class="muted" id="profile-basal-info">Gasto basal estimado: -- kcal/dia.</div>
+            </div>
+          </section>
+
         </main>
   </div>
 
@@ -532,14 +731,24 @@
     const tabs = document.querySelectorAll(".tab");
     const sections = document.querySelectorAll("main > section");
     const periodButtons = document.querySelectorAll(".period-button");
-    const saldoTitle = document.getElementById("saldo-title");
     const chart = document.getElementById("balance-chart");
+    const greetingTitle = document.getElementById("greeting-title");
+    const profileButton = document.getElementById("profile-button");
+    const profileWeightLabel = document.getElementById("profile-weight-label");
+    const profileHeightLabel = document.getElementById("profile-height-label");
+    const goalBannerValue = document.getElementById("goal-banner-value");
+    const goalPercent = document.getElementById("goal-percent");
+    const calorieRing = document.getElementById("calorie-ring");
+    const calorieFill = document.getElementById("calorie-fill");
+    const proteinFill = document.getElementById("protein-fill");
+    const carbsFill = document.getElementById("carbs-fill");
+    const spentFill = document.getElementById("spent-fill");
+    const remainingKcal = document.getElementById("remaining-kcal");
+    const targetKcal = document.getElementById("target-kcal");
     const consumoTitle = document.getElementById("consumo-title");
     const consumoResumo = document.getElementById("consumo-resumo");
     const gastoTitle = document.getElementById("gasto-title");
     const gastoResumo = document.getElementById("gasto-resumo");
-    const balanceEl = document.querySelector(".balance");
-    const balanceHintEl = document.querySelector(".hero .muted");
     const metricConsumed = document.getElementById("metric-consumed");
     const metricSpent = document.getElementById("metric-spent");
     const metricProtein = document.getElementById("metric-protein");
@@ -569,6 +778,14 @@
     const foodSearchWrap = document.getElementById("food-search-wrap");
     const foodSearch = document.getElementById("food-search");
     const foodHint = document.getElementById("food-hint");
+    const profileName = document.getElementById("profile-name");
+    const profileWeight = document.getElementById("profile-weight");
+    const profileHeight = document.getElementById("profile-height");
+    const profileAge = document.getElementById("profile-age");
+    const profileSex = document.getElementById("profile-sex");
+    const profileTarget = document.getElementById("profile-target");
+    const saveProfile = document.getElementById("save-profile");
+    const profileBasalInfo = document.getElementById("profile-basal-info");
 
     const storageKey = "dieta-controlada-web:v1";
     const formatSigned = (value) => value > 0 ? `+${value}` : `${value}`;
@@ -603,7 +820,21 @@
       history.replaceState(null, "", window.location.pathname);
     }
 
+    const defaultProfile = {
+      name: "Robson",
+      weightKg: "",
+      heightCm: "",
+      age: "",
+      sex: "male",
+      calorieTarget: ""
+    };
+
     let appData = JSON.parse(localStorage.getItem(storageKey) || '{"meals":[],"expenses":[]}');
+    appData = {
+      meals: Array.isArray(appData.meals) ? appData.meals : [],
+      expenses: Array.isArray(appData.expenses) ? appData.expenses : [],
+      profile: { ...defaultProfile, ...(appData.profile || {}) }
+    };
     let selectedFoodId = foods[0]?.id;
     let selectedServingId = "gramas";
     let selectedActivityId = activityPresets[0].id;
@@ -616,6 +847,41 @@
 
     function saveData() {
       localStorage.setItem(storageKey, JSON.stringify(appData));
+    }
+
+    function calculateBasal(profile = appData.profile) {
+      const weight = Number(String(profile.weightKg).replace(",", ".")) || 0;
+      const height = Number(String(profile.heightCm).replace(",", ".")) || 0;
+      const age = Number(profile.age) || 0;
+      if (!weight || !height || !age) return 0;
+      const base = 10 * weight + 6.25 * height - 5 * age;
+      return Math.round(base + (profile.sex === "female" ? -161 : 5));
+    }
+
+    function dailyTarget() {
+      const manualTarget = Number(String(appData.profile.calorieTarget).replace(",", ".")) || 0;
+      return manualTarget || calculateBasal() || 1420;
+    }
+
+    function renderProfile() {
+      const profile = appData.profile;
+      const basal = calculateBasal(profile);
+      const target = dailyTarget();
+      const firstName = (profile.name || "Robson").trim().split(" ")[0] || "Robson";
+      greetingTitle.textContent = `Olá, ${firstName}`;
+      profileButton.textContent = firstName.slice(0, 1).toUpperCase();
+      profileWeightLabel.textContent = profile.weightKg ? `${String(profile.weightKg).replace(".", ",")}kg` : "-- kg";
+      profileHeightLabel.textContent = profile.heightCm ? `${round(Number(profile.heightCm) / 100).toString().replace(".", ",")}m` : "-- m";
+      profileName.value = profile.name || "";
+      profileWeight.value = profile.weightKg || "";
+      profileHeight.value = profile.heightCm || "";
+      profileAge.value = profile.age || "";
+      profileSex.value = profile.sex || "male";
+      profileTarget.value = profile.calorieTarget || "";
+      goalBannerValue.textContent = `${target} kcal`;
+      profileBasalInfo.textContent = basal
+        ? `Gasto basal estimado: ${basal} kcal/dia. Meta usada: ${target} kcal/dia.`
+        : "Informe peso, altura e idade para estimar o gasto basal.";
     }
 
     function periodStart(period) {
@@ -860,14 +1126,25 @@
       const protein = round(meals.reduce((sum, item) => sum + item.protein, 0));
       const carbs = round(meals.reduce((sum, item) => sum + item.carbs, 0));
       const balance = round(consumed - spent);
+      const target = dailyTarget();
+      const remaining = round(target - consumed + spent);
+      const percent = Math.max(0, Math.min(100, Math.round((consumed / Math.max(target, 1)) * 100)));
+      const proteinPercent = Math.max(0, Math.min(100, Math.round((protein / 120) * 100)));
+      const carbsPercent = Math.max(0, Math.min(100, Math.round((carbs / 220) * 100)));
+      const spentPercent = Math.max(0, Math.min(100, Math.round((spent / Math.max(target, 1)) * 100)));
 
-      balanceEl.textContent = `${formatSigned(balance)} kcal`;
-      balanceEl.style.color = balance > 0 ? "#ff6b6b" : balance < 0 ? "#9fe870" : "#ffffff";
-      balanceHintEl.textContent = balance > 0 ? "Superávit calórico" : balance < 0 ? "Déficit calórico" : "Registre alimentação e atividades para acompanhar seu saldo.";
       metricConsumed.textContent = `${consumed} kcal`;
       metricSpent.textContent = `${spent} kcal`;
       metricProtein.textContent = `${protein} g`;
       metricCarbs.textContent = `${carbs} g`;
+      targetKcal.textContent = target.toLocaleString("pt-BR");
+      remainingKcal.textContent = remaining.toLocaleString("pt-BR");
+      goalPercent.textContent = `${percent}%`;
+      calorieRing.style.setProperty("--progress", `${percent}%`);
+      calorieFill.style.setProperty("--width", `${percent}%`);
+      proteinFill.style.setProperty("--width", `${proteinPercent}%`);
+      carbsFill.style.setProperty("--width", `${carbsPercent}%`);
+      spentFill.style.setProperty("--width", `${spentPercent}%`);
     }
 
     function renderConsumption(period = currentPeriod) {
@@ -1003,7 +1280,8 @@
     }
 
     function renderAll() {
-      renderTotals(currentPeriod);
+      renderProfile();
+      renderTotals("hoje");
       renderChart(currentPeriod);
       renderConsumption(currentPeriod);
       renderExpenses(currentPeriod);
@@ -1018,6 +1296,28 @@
         tab.classList.add("active");
         document.getElementById(tab.dataset.tab).classList.remove("hidden");
       });
+    });
+
+    function openTab(tabName) {
+      tabs.forEach((item) => item.classList.toggle("active", item.dataset.tab === tabName));
+      sections.forEach((section) => section.classList.add("hidden"));
+      document.getElementById(tabName).classList.remove("hidden");
+    }
+
+    profileButton.addEventListener("click", () => openTab("perfil"));
+
+    saveProfile.addEventListener("click", () => {
+      appData.profile = {
+        name: profileName.value.trim() || "Robson",
+        weightKg: profileWeight.value.trim(),
+        heightCm: profileHeight.value.trim(),
+        age: profileAge.value.trim(),
+        sex: profileSex.value,
+        calorieTarget: profileTarget.value.trim()
+      };
+      saveData();
+      renderAll();
+      alert("Perfil salvo.");
     });
 
     foodModeButtons.forEach((button) => {
@@ -1069,7 +1369,6 @@
       saveData();
       currentPeriod = "hoje";
       periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
-      saldoTitle.textContent = "Saldo de hoje";
       renderFoodOptions(currentFoodMode);
       renderAll();
     });
@@ -1101,7 +1400,6 @@
       saveData();
       currentPeriod = "hoje";
       periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
-      saldoTitle.textContent = "Saldo de hoje";
       renderAll();
     });
 
@@ -1110,7 +1408,6 @@
         periodButtons.forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
         currentPeriod = button.dataset.period;
-        saldoTitle.textContent = periodTitle("Saldo", currentPeriod);
         renderAll();
       });
     });
