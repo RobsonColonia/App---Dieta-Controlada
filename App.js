@@ -911,7 +911,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   header: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 8
   },
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     gap: 5,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingBottom: 12
   },
   periods: {
@@ -939,8 +939,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     flex: 1,
     alignItems: "center",
-    paddingHorizontal: 5,
-    paddingVertical: 9
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    minWidth: 0
   },
   tabActive: {
     backgroundColor: "#466B2D"
@@ -948,25 +949,29 @@ const styles = StyleSheet.create({
   tabText: {
     color: "#466B2D",
     fontWeight: "700",
-    fontSize: 10
+    fontSize: 9,
+    textAlign: "center",
+    flexShrink: 1,
+    flexWrap: "wrap"
   },
   tabTextActive: {
     color: "#FFFFFF"
   },
   content: {
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
     paddingBottom: 36,
     gap: 14
   },
   cardHero: {
     backgroundColor: "#243119",
     borderRadius: 24,
-    padding: 22
+    padding: 16
   },
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
-    padding: 16,
+    padding: 14,
     gap: 12,
     shadowColor: "#000",
     shadowOpacity: 0.06,
@@ -980,9 +985,10 @@ const styles = StyleSheet.create({
   },
   balance: {
     color: "#FFFFFF",
-    fontSize: 44,
+    fontSize: 36,
     fontWeight: "900",
-    marginVertical: 8
+    marginVertical: 8,
+    flexShrink: 1
   },
   heroPeriods: {
     flexDirection: "row",
@@ -1005,7 +1011,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
     borderRadius: 16,
-    padding: 10
+    paddingHorizontal: 8,
+    paddingVertical: 8
   },
   heroMetricTitle: {
     color: "#C7D5B9",
@@ -1020,10 +1027,11 @@ const styles = StyleSheet.create({
   periodButton: {
     backgroundColor: "#334923",
     borderRadius: 999,
-    paddingHorizontal: 7,
-    paddingVertical: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     marginBottom: 6,
-    flexShrink: 1
+    flexShrink: 1,
+    maxWidth: "100%"
   },
   periodButtonActive: {
     backgroundColor: "#9FE870"
@@ -1031,7 +1039,9 @@ const styles = StyleSheet.create({
   periodButtonText: {
     color: "#DCE9CF",
     fontSize: 10,
-    fontWeight: "800"
+    fontWeight: "800",
+    flexShrink: 1,
+    flexWrap: "wrap"
   },
   periodButtonTextActive: {
     color: "#243119"
@@ -1100,12 +1110,14 @@ const styles = StyleSheet.create({
   selectorTab: {
     flexGrow: 1,
     flexBasis: "48%",
+    maxWidth: "48%",
     minWidth: 0,
     borderColor: "#D8E2C6",
     borderWidth: 1,
     borderRadius: 14,
     alignItems: "center",
-    paddingVertical: 11,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     backgroundColor: "#F5F7EF"
   },
   selectorTabActive: {
@@ -1114,8 +1126,11 @@ const styles = StyleSheet.create({
   },
   selectorTabText: {
     color: "#466B2D",
-    fontSize: 13,
-    fontWeight: "900"
+    fontSize: 12,
+    fontWeight: "900",
+    textAlign: "center",
+    flexShrink: 1,
+    flexWrap: "wrap"
   },
   selectorTabTextActive: {
     color: "#FFFFFF"
@@ -1141,8 +1156,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 14,
     paddingHorizontal: 12,
-    paddingVertical: 11,
-    backgroundColor: "#F5F7EF"
+    paddingVertical: 10,
+    backgroundColor: "#F5F7EF",
+    minWidth: 0,
+    maxWidth: "100%"
   },
   foodPillActive: {
     backgroundColor: "#466B2D",
@@ -1150,7 +1167,9 @@ const styles = StyleSheet.create({
   },
   foodPillText: {
     color: "#466B2D",
-    fontWeight: "800"
+    fontWeight: "800",
+    flexShrink: 1,
+    flexWrap: "wrap"
   },
   foodPillTextActive: {
     color: "#FFFFFF"
