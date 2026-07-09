@@ -603,6 +603,21 @@
       gap: 18px;
     }
 
+    .recommendation-card:not(.empty) {
+      cursor: pointer;
+      opacity: 0.72;
+    }
+
+    .recommendation-card.selected {
+      opacity: 1;
+      border-width: 2px;
+      box-shadow: 0 10px 24px rgba(32, 155, 38, 0.12);
+    }
+
+    .recommendation-card:not(.selected) .selected-pill {
+      visibility: hidden;
+    }
+
     .recommendation-card.empty {
       border: 2px dashed #209b26;
       background: #eaf6ea;
@@ -1131,7 +1146,7 @@
 
             <div class="recommendation-carousel" id="recommendation-carousel"></div>
             <div class="carousel-dots" id="recommendation-dots"></div>
-            <button class="button" type="button" id="meal-detail-register" style="margin-top: 18px;">Registrar refeição +</button>
+            <button class="button" type="button" id="meal-detail-register" style="margin-top: 18px;">Registrar dieta</button>
           </section>
 
         </main>
@@ -1394,6 +1409,7 @@
     let currentFoodMode = "popular";
     let currentPeriod = "hoje";
     let currentMealDetail = mealTypes[0].id;
+    let selectedRecommendationIndex = 0;
 
     mealDate.value = todayISO();
     expenseDate.value = todayISO();
@@ -1473,6 +1489,7 @@
 
     function openMealDetail(mealTypeId) {
       currentMealDetail = mealTypeId;
+      selectedRecommendationIndex = 0;
       const mealType = mealTypes.find((item) => item.id === mealTypeId) || mealTypes[0];
       selectedMealType = mealType.id;
       const alreadyDone = appData.meals.some((item) => item.date === todayISO() && item.mealType === mealType.id);
@@ -1485,8 +1502,8 @@
         : "Escolha uma sugestão ou crie sua própria refeição";
       const options = mealRecommendations[mealType.id] || [];
       recommendationCarousel.innerHTML = [
-        ...options.map((option) => `
-          <div class="recommendation-card">
+        ...options.map((option, index) => `
+          <div class="recommendation-card ${index === selectedRecommendationIndex ? "selected" : ""}" data-recommendation-index="${index}">
             <div class="recommendation-head">
               <span class="selected-pill">✓ Selecionada</span>
               <span class="kcal-pill">${option.kcal} kcal</span>
@@ -1513,7 +1530,51 @@
         </div>`
       ].join("");
       recommendationDots.innerHTML = Array.from({ length: options.length + 1 }, (_, index) => `<span class="carousel-dot ${index === 0 ? "active" : ""}"></span>`).join("");
+      recommendationCarousel.querySelectorAll("[data-recommendation-index]").forEach((card) => {
+        card.addEventListener("click", () => selectRecommendation(Number(card.dataset.recommendationIndex)));
+      });
       openTab("refeicao-detalhe");
+    }
+
+    function selectRecommendation(index) {
+      selectedRecommendationIndex = index;
+      recommendationCarousel.querySelectorAll("[data-recommendation-index]").forEach((card) => {
+        card.classList.toggle("selected", Number(card.dataset.recommendationIndex) === selectedRecommendationIndex);
+      });
+    }
+
+    function registerSelectedRecommendation() {
+      const mealType = mealTypes.find((item) => item.id === currentMealDetail) || mealTypes[0];
+      const options = mealRecommendations[mealType.id] || [];
+      const option = options[selectedRecommendationIndex];
+      if (!option) {
+        selectedMealType = currentMealDetail;
+        renderMealTypeOptions();
+        openTab("refeicao");
+        return;
+      }
+      const itemsLabel = option.items.map((item) => `${item.name} (${item.amount})`).join(", ");
+      appData.meals.unshift({
+        id: `${Date.now()}`,
+        date: todayISO(),
+        foodId: `sugestao-${mealType.id}-${Date.now()}`,
+        foodName: `${mealDetailLabels[mealType.id] || mealType.name}: ${itemsLabel}`,
+        mealType: mealType.id,
+        mealTypeName: mealType.name,
+        mealTime: appData.mealTimes?.[mealType.id] || defaultMealTimes[mealType.id],
+        grams: 0,
+        quantity: 1,
+        servingName: "Dieta sugerida",
+        servingId: "dieta-sugerida",
+        calories: round(option.kcal || 0),
+        protein: 0,
+        carbs: 0
+      });
+      saveData();
+      currentPeriod = "hoje";
+      periodButtons.forEach((item) => item.classList.toggle("active", item.dataset.period === "hoje"));
+      renderAll();
+      openTab("hoje");
     }
 
     function renderWater() {
@@ -1830,7 +1891,9 @@
         return;
       }
       mealLog.innerHTML = meals.map((item) => {
-        const portionLabel = item.quantity && item.servingName && item.servingName !== "Gramas"
+        const portionLabel = item.servingId === "dieta-sugerida"
+          ? "Dieta sugerida"
+          : item.quantity && item.servingName && item.servingName !== "Gramas"
           ? `${item.quantity} ${item.servingName.toLowerCase()} (${item.grams}g)`
           : `${item.grams}g`;
         const mealTypeLabel = item.mealTypeName ? `${item.mealTypeName} ${item.mealTime || ""} • ` : "";
@@ -1970,9 +2033,7 @@
       renderMealsProgress();
     });
     mealDetailRegister.addEventListener("click", () => {
-      selectedMealType = currentMealDetail;
-      renderMealTypeOptions();
-      openTab("refeicao");
+      registerSelectedRecommendation();
     });
     recommendationCarousel.addEventListener("click", (event) => {
       if (event.target.closest(".recommendation-card.empty")) {
